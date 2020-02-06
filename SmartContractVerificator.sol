@@ -7,6 +7,7 @@ contract SmartContractVerificator {
     address constant public programmerVerificator = 0xE0f5206BBD039e7b0592d8918820024e2a7437b9;
     // only verified programmer ethereum address list
     address[] public registeredProgrammers;
+    // wallet which holds the reward for the verificators 
     address payable public wallet;
     address public smartContractOwner;
     address public smartContractToVerify;
@@ -39,7 +40,7 @@ contract SmartContractVerificator {
         registeredProgrammers.add(msg.sender);
     }
     
-    function getWalletAddress() public returns(address) {
+    function getRewardWalletAddress() public returns(address) {
         return wallet;
     }
     
@@ -52,17 +53,23 @@ contract SmartContractVerificator {
 
 contract ProgrammerVerificator {
     address owner;
+    
     address[] public verifiedProgrammers;
-    mapping(address => uint8[]) ratings;
+    // address of ratings is one programmer
+    // uint8[] size is the amount of ratings
+    // uint8 is one rating
+    // sum of uint8s divided by uint8[] size is the percentage of good ratings  
+    mapping(address => uint8[]) public ratings;
     
     struct Riddle {
         string question;
         string[] possibleAnswers;
         uint8 correctAnswerIndex;
     }
-    // let the examinee decide between 3 options of answers
-    mapping(uint8 => Riddle) riddles;
     
+    // let the examinee decide between 3 options of answers
+    // should only be 100 riddles
+    mapping(uint8 => Riddle) riddles;
     uint8 riddleIndex = 0;
     
     modifier onlyVerifiedProgrammer () {
@@ -112,7 +119,8 @@ contract ProgrammerVerificator {
     // should only be called one time for each test of a programmer
     function evaluateProgrammer(address _programmerToEvaluate, uint8 _rating) public onlyVerifiedProgrammer {
         require(verifiedProgrammers[_programmerToEvaluate].exists, "Specified address is not in the list of verified programmers.");
-        require(2 >= _rating && _rating <= 0, "Specified rating is not between 0 and 2.");
+        require(0 <= _rating && _rating <= 2, "Specified rating is not between 0 and 2.");
+        // add rating to the verified programmer
         ratings[_programmerToEvaluate] = ratings[_programmerToEvaluate].add(_rating);
     }
     
@@ -123,7 +131,9 @@ contract ProgrammerVerificator {
     // owner could add shuffled version of riddles 
     function addRiddle(string memory _question, string[] memory _possibleAnswers, uint8 _correctAnswerIndex) public onlyOwner {
         require(riddleIndex < 100, "Only 100 riddles are needed for the test!");
-        riddles[riddleIndex] = (_question, _possibleAnswers, _correctAnswerIndex);
+        require(_possibleAnswers.size() == 3, "There have to be 3 possible answers!");
+        require(0 <= _correctAnswerIndex && _correctAnswerIndex <= 2, "The correct answer index should be 0 or 1 or 2 (for 3 possible answers)!");
+        riddles[riddleIndex] = Riddle(_question, _possibleAnswers, _correctAnswerIndex);
         riddleIndex++;
         // make an address which holds the question and answer then add the address to the list 
         // transfer this riddle to an IOTA address on the tangle and hold the transaction bundle id of iota here in eth
@@ -131,6 +141,7 @@ contract ProgrammerVerificator {
         // but let the users of ethereum add a riddle, because they use a ETH address and are silly to use IOTA
     }
     
+    // for refreshing the riddle list that every time another riddle list is created
     function deleteRiddles() public onlyOwner {
         riddles = [];
         riddleIndex = 0;
