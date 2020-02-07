@@ -2,19 +2,40 @@ pragma solidity ^0.6.2;
 
 // TODO: list of every verified smart contract should be saved in blockchain
 
-// owner is the creator of the to verified smart contract
+// smart verified programmers check smart contract code for semantic weaknesses, errors and bugs
 contract SmartContractVerificator {
     bool internal isVerified = false;
     
     address constant public programmerVerificator = 0xE0f5206BBD039e7b0592d8918820024e2a7437b9;
-    // only verified programmer ethereum address list
+
+    // only verified programmer ethereum address list which registered for the verification of the smart contract
+    // 75% of the registered programmers should accept the code to get verified
+    // programmers verification is only valid if it is pushed with test code and another verified programmer evaluate the test code
     address[] public registeredProgrammers;
+    
+    // first address is address of a registered programmer, second is address of smart contract
+    mapping(address => address) testsForSmartContract;
+    
+    struct TestReview {
+        address[] reviewer;
+        uint8[] ratings;
+    }
+    
+    // first address is registered programmer wo has written the test, second is the test
+    // reward only the 100 fastest testers with good rating
+    mapping(address => mapping(address => TestReview[])) testReviewMapping;
     
     // wallet which holds the reward for the verificators 
     address payable public wallet;
     
     address public smartContractOwner;
+    // owner is the creator of the to verified smart contract
     address public smartContractToVerify;
+    
+    // only one wei best offer for one verified programmer
+    // for the owner, that he knows what the price should be
+    mapping(address => uint256) internal bestWeiOffers;
+    
     
     modifier onlyOwner() {
         require(msg.sender == smartContractOwner);
@@ -40,12 +61,40 @@ contract SmartContractVerificator {
         smartContractToVerify = _smartContract;
     }
     
+    // the registered programmer has written a test for the to verified smart contract
+    function sendSmartContractTest(address _smartContractTest) public onlyRegisteredProgrammer {
+        require(isContract(_smartContractTest), "Specified address is not a smart contract! Address should be a smart contract address.");
+        require(!testReviewMapping[msg.sender].exists, "One test of your address is already rated.");
+        // tester could always override the test with a fresh one, but only until the smart contract test is not rated by another verified programmer
+        testsForSmartContract[msg.sender] = _smartContractTest;
+    }
+    
+    function getRandomTestOfSmartContract() public onlyVerifiedProgrammer returns (address) {
+        // assert that test is not written by the caller of this function
+        // assert that its not a test that is already evaluated by the msg.sender
+        
+        // get one random smart contract test, which is not evaluated
+        // second if there is no test of smart contract which is not evaluated than take random smart contract which is only evaluated one time and so on...
+    }
+    
     function isSmartContractVerified() public returns (bool) {
         return isVerified;
     }
     
     function registerForVerification() public onlyVerifiedProgrammer {
+        require(!registeredProgrammers[msg.sender].exists, "Your address is already in the registered programmer address list.");
         registeredProgrammers.add(msg.sender);
+    }
+    
+    // verified programmer could suggest an amount the owner should pay
+    function sendBestWeiOffer(uint256 _weiAmount) public onlyVerifiedProgrammer {
+        bestWeiOffers[msg.sender] = _weiAmount;
+    }
+    
+    // smart contract owner could see the price suggestions
+    // only accessible because others should not see which price a verified programmer would pay 
+    function getBestWeiOffers() public onlyOwner returns (mapping(address => uint256)){
+        return getBestWeiOffers;
     }
     
     function getRewardWalletAddress() public returns(address) {
@@ -155,4 +204,5 @@ contract ProgrammerVerificator {
         riddleIndex = 0;
     }
 }
+
 
