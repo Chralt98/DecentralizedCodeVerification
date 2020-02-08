@@ -1,29 +1,36 @@
 pragma solidity ^0.6.2;
 
+import "./SafeMath.sol";
+
 // TODO: list of every verified smart contract should be saved in blockchain
 
-// smart verified programmers check smart contract code for semantic weaknesses, errors and bugs
+// smart verified programmers check smart contract code for semantic weaknesses, errors and bugs and they will test it (write a test smart contract for that)
+// let the registered programmers with the 50% best ratings get the reward stored in the wallet
+// each registered programmer can call if the smart contract is accepted
+// owner can not change the smart contract, there will be tests only written for this version and semantic comments
+// the reward will be distributed always for the tests and comments and semantic reviews
 contract SmartContractVerificator {
-    bool internal isVerified = false;
-    
     address constant public programmerVerificator = 0xE0f5206BBD039e7b0592d8918820024e2a7437b9;
 
     // only verified programmer ethereum address list which registered for the verification of the smart contract
-    // 75% of the registered programmers should accept the code to get verified
     // programmers verification is only valid if it is pushed with test code and another verified programmer evaluate the test code
     address[] public registeredProgrammers;
     
-    // first address is address of a registered programmer, second is address of smart contract
-    mapping(address => address) testsForSmartContract;
+    // first is registered programmer and second is if the smart contract is accepted
+    // 60% of the registered programmers (testers) should accept the code to get verified
+    // TODO: at least 100 acceptances ? define the minimum
+    mapping(uint => mapping(address => bool)) acceptanceMapping;
+    uint internal voteCounter = 0;
     
-    struct TestReview {
-        address[] reviewer;
-        uint8[] ratings;
-    }
+    // first address is address of a registered programmer, second is address of smart contract test
+    mapping(address => address) testsForSmartContractMapping;
     
-    // first address is registered programmer wo has written the test, second is the test
+    // first is reviewer, second is rating
+    mapping(address => uint8) reviewerRatingMapping;
+    
+    // first is address of smart contract test
     // reward only the 100 fastest testers with good rating
-    mapping(address => mapping(address => TestReview[])) testReviewMapping;
+    mapping(address => reviewerRatingMapping) testReviewMapping;
     
     // wallet which holds the reward for the verificators 
     address payable public wallet;
@@ -61,12 +68,37 @@ contract SmartContractVerificator {
         smartContractToVerify = _smartContract;
     }
     
+    function getSmartContractToVerify() public returns (address) {
+        return smartContractToVerify;
+    }
+    
+    function isSmartContractVerified() public returns (bool) {
+        bool isVerified = false;
+        // rules when the smart contract is finally accepted by the registered programmers
+        uint sumOfAcceptance = 0;
+        bool accepted;
+        for(uint i = 0; i < (voteCounter + 1); i++) {
+            accepted = acceptanceMapping[i].get(1);
+            if (accepted) sumOfAcceptance++;
+        }
+        // TODO: at least 100 votes?
+        if (voteCounter <= 100) return false;
+        uint percentAcceptance = SafeMath.div((sumOfAcceptance * 100), voteCounter);
+        // 60 % of registered programmers have to vote for true acceptance that it will be verified
+        return (percentAcceptance >= 60);
+    }
+    
     // the registered programmer has written a test for the to verified smart contract
-    function sendSmartContractTest(address _smartContractTest) public onlyRegisteredProgrammer {
+    function sendSmartContractTestWithAcceptanceToBeVerified(address _smartContractTest, bool _isAccepted) public onlyRegisteredProgrammer {
         require(isContract(_smartContractTest), "Specified address is not a smart contract! Address should be a smart contract address.");
-        require(!testReviewMapping[msg.sender].exists, "One test of your address is already rated.");
+        require(!testReviewMapping[msg.sender].exists, "One test of your address is already rated by a verified programmer.");
         // tester could always override the test with a fresh one, but only until the smart contract test is not rated by another verified programmer
-        testsForSmartContract[msg.sender] = _smartContractTest;
+        testsForSmartContractMapping[msg.sender] = _smartContractTest;
+        if (!acceptanceMapping.get(1)[msg.sender].exists) {
+            // tester can only vote ones
+            acceptanceMapping[voteCounter][msg.sender] = _isAccepted;
+            voteCounter++;
+        }
     }
     
     function getRandomTestOfSmartContract() public onlyVerifiedProgrammer returns (address) {
@@ -77,8 +109,17 @@ contract SmartContractVerificator {
         // second if there is no test of smart contract which is not evaluated than take random smart contract which is only evaluated one time and so on...
     }
     
-    function isSmartContractVerified() public returns (bool) {
-        return isVerified;
+    function evaluateTestOfSmartContract(address _smartContractTest, uint8 _rating) public onlyVerifiedProgrammer {
+        require(testsForSmartContractMapping.get(1)[_smartContractTest].exists, "Specified address of test for the smart contract does not exist.");
+        require((_smartContractTest == testsForSmartContractMapping[msg.sender]), "You can not rate your own test.");
+        require(!reviewerRatingMapping[msg.sender].exists, "You already rated this test.");
+        require(0 <= _rating && _rating <= 2, "Specified rating is not 0 or 1 or 2, but has to be.");
+        
+        testReviewMapping[_smartContractTest][msg.sender] = _rating;
+        
+        // evaluate programmer in the programmer verificator
+        address tester = testsForSmartContractMapping.get(0)[_smartContractTest];
+        ProgrammerVerificator.evaluateProgrammer(tester, _rating);
     }
     
     function registerForVerification() public onlyVerifiedProgrammer {
@@ -97,6 +138,7 @@ contract SmartContractVerificator {
         return getBestWeiOffers;
     }
     
+    // that others could see what the reward is
     function getRewardWalletAddress() public returns(address) {
         return wallet;
     }
@@ -173,10 +215,12 @@ contract ProgrammerVerificator {
         return false;
     }
     
+    // TODO: this is called in the Smart Contract Verificator => have to check if verified programmer could be the smart contract verificator itself or hand over the msg.sender a verified programmer
+    // TODO: not sure if the calling Smart contract Verificator calls as onlyVerifiedProgrammer
     // should only be called one time for each test of a programmer
     function evaluateProgrammer(address _programmerToEvaluate, uint8 _rating) public onlyVerifiedProgrammer {
         require(verifiedProgrammers[_programmerToEvaluate].exists, "Specified address is not in the list of verified programmers.");
-        require(0 <= _rating && _rating <= 2, "Specified rating is not between 0 and 2.");
+        require(0 <= _rating && _rating <= 2, "Specified rating is not 0 or 1 or 2, but has to be.");
         // add rating to the verified programmer
         ratings[_programmerToEvaluate] = ratings[_programmerToEvaluate].add(_rating);
     }
