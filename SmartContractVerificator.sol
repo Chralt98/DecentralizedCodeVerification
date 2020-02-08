@@ -14,6 +14,11 @@ contract SmartContractVerificator {
     // final variable to occupy the smart contract verification
     bool internal isVerified;
     
+    // if the smart contract is accepted by the verified programmers
+    bool internal isAccepted;
+    
+    bool internal isRewarded;
+    
     // if locked is true, then the smart contract is finally verified or not and additional ratings and tests have no effect on the verification
     bool internal locked;
     
@@ -35,6 +40,10 @@ contract SmartContractVerificator {
     
     // first is reviewer, second is rating
     mapping(address => uint8) reviewerRatingMapping;
+    
+    // first uint is index, second uint are smart contract test points and last is address of smart contract test
+    mapping(uint => mapping(uint => address)) testRatingMapping;
+    uint testRatingMappingCounter = 0;
     
     // first is address of smart contract test
     // reward only the 100 fastest testers with good rating
@@ -98,25 +107,49 @@ contract SmartContractVerificator {
         
         // 60 % of registered programmers have to vote for acceptance that the smart contract will be verified
         if (percentAcceptance >= 60) {
-            isVerified = true;
+            isAccepted = true;
         } else {
             // 40 % ore more did not accept the smart contract 
-            isVerified = false;
+            isAccepted = false;
         }
         locked = true;
-        rewardTesters();
     }
     
-    function rewardTesters() {
-        // TODO: let only reward the testers with at least a rating of 1
+    // owner gets only the best rated test if owner does not rewarded the testers
+    function getTests() onlyOwner returns (address) {
+        require((locked == true), "The semantic smart contract verification process is not finished. Wait until enough verificated programmers tested the smart contract.");
+        if (isRewarded) {
+            // get every test
+            return testReviewMapping;
+        }
+        // get the one best rated test
+        uint bestRating = 0;
+        address bestRatedTest;
+        for(uint i = 0; i <= testRatingMappingCounter; i++) {
+            uint rating = testRatingMapping[i];
+            if (bestRating < rating) {
+                bestRatedTest = testRatingMapping[i].get(1);
+                bestRating = rating;
+            }
+        }
+        return bestRatedTest;
+    }
+    
+    // the incentive for the owner to reward the testers is the verified == true and getting every test review
+    function rewardTesters() onlyOwner {
+        require((locked == true), "The semantic smart contract verification process is not finished. Wait until enough verificated programmers tested the smart contract.");
+        // let only reward the testers with at least a rating of 1
         // only reward testers who evaluated at least three other testers
+        // if the owner accepts the tests, then the wallet rewards the testers
+        if (isAccepted) isVerified = true;
+        isRewarded = true;
     }
     
     // the registered programmer has written a test for the to verified smart contract
     // after this the tester needs also to check another test of another tester, if not, he will not be rewarded
     function sendSmartContractTestWithAcceptanceToBeVerified(address _smartContractTest, bool _isAccepted) public onlyRegisteredProgrammer {
         require(isContract(_smartContractTest), "Specified address is not a smart contract! Address should be a smart contract address.");
-        require(!testReviewMapping[msg.sender].exists, "One test of your address is already rated by a verified programmer.");
+        require(!testReviewMapping[_smartContractTest][msg.sender].exists, "One test of your address is already rated by a verified programmer.");
         // tester could always override the test with a fresh one, but only until the smart contract test is not rated by another verified programmer
         testsForSmartContractMapping[msg.sender] = _smartContractTest;
         if (!acceptanceMapping.get(1)[msg.sender].exists) {
@@ -145,6 +178,9 @@ contract SmartContractVerificator {
         require(0 <= _rating && _rating <= 2, "Specified rating is not 0 or 1 or 2, but has to be.");
         
         testReviewMapping[_smartContractTestToEvaluate][msg.sender] = _rating;
+        // find out the best rated smart contract
+        testRatingMapping[testRatingMappingCounter][_smartContractTestToEvaluate] += _rating;
+        testRatingMappingCounter++;
         
         // evaluate programmer in the programmer verificator
         address tester = testsForSmartContractMapping.get(0)[_smartContractTest];
@@ -284,4 +320,5 @@ contract ProgrammerVerificator {
         riddleIndex = 0;
     }
 }
+
 
