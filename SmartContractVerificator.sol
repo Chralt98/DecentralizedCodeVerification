@@ -27,7 +27,7 @@ contract SmartContractVerificator {
     
     // only verified programmer ethereum address list which registered for the verification of the smart contract
     // programmers verification is only valid if it is pushed with test code and another verified programmer evaluate the test code
-    address[MAXIMUM_TESTERS] public testers;
+    address[] public testers;
     
     // first is verified programmer and second is if the smart contract is accepted
     // 60% of the verified programmers should accept the code to get verified
@@ -37,11 +37,17 @@ contract SmartContractVerificator {
     mapping(address => address) testerSmartContractTestMapping;
     // first is test and second is tester
     mapping(address => address) testSmartContractTesterMapping;
-    address[MAXIMUM_TESTERS] public tests;
-    
+    address[] public tests;
+    // first is index second is same test address
+    mapping(uint => address) public swarmLevelTwoTests;
+    uint swarmLevelTwoTestIndex = 0;
     // first is address of smart contract test
     // second is reviewer and third is rating of reviewer
     mapping(address => mapping(address => uint8)) testReviewerRatingMapping;
+    
+    // first is index, second is reviewer address and third is smart contract address
+    mapping(uint => mapping(address => address)) reviewerRatingMapping;
+    uint reviewerRatingMappingIndex = 0;
     
     // uints are the amount of added ratings
     struct Rating {
@@ -102,7 +108,7 @@ contract SmartContractVerificator {
     }
     
     // starts with one reviewer parameters
-    function checkSmartContractVerification(address _smartContractTest, address _reviewer, uint8 _rating) internal {
+    function checkSwarmIntelligence(address _smartContractTest) internal {
         require((locked == false), "The smart contract is already locked and the verification state is now certain.");
         
         uint zeros = testRatingMapping[_smartContractTest].zeroPoints;
@@ -112,7 +118,7 @@ contract SmartContractVerificator {
         uint ratingAmount = zeros + ones + twos;
         // first look if the smart contract test got 100 ratings
         // minimum limit for whole rating amount
-        if (ratingAmount <= MINIMUM_RATINGS) return;
+        if (ratingAmount < MINIMUM_RATINGS) return;
         
         // let the verified programmers with the swarm intelligence get a good ranking to get selected for the next test of smart contract
         uint8 swarm;
@@ -126,28 +132,39 @@ contract SmartContractVerificator {
             // there is no majority, wait for the next reviewer
             return;
         }
-        
-        if (swarm == _rating) {
-            // TODO programmer evaluation should only add one weight to programmer (weight ++)
-            PROGRAMMER_VERIFICATOR.evaluateProgrammer(_reviewer, 3);
+        // evaluate the programmer which got the rating as swarm intelligence
+        for (uint i = 0; i < reviewerRatingMappingIndex; i++) {
+            if (testReviewerRatingMapping[_smartContractTest][reviewerRatingMapping[i]] == swarm) {
+                PROGRAMMER_VERIFICATOR.evaluateProgrammer(reviewerRatingMapping[i], 1);
+            }
         }
-        
         // tester is too bad
         if (swarm == 0 || swarm == 1) {
             // remove tester and let another verified programmer get a chance to do a better test
             testers.remove(testSmartContractTesterMapping[_smartContractTest]);
             tests.remove(_smartContractTest);
+            return;
         }
-        
+        // swarm is 3 so the tester has written a good test
+        swarmLevelTwoTests[swarmLevelTwoTestIndex] = _smartContractTest;
+        swarmLevelTwoTestIndex++;
+        // if the last swarm level 2 contract is called this function (the maximum smart contract test with rating of 3) then checkSmartContractVerification
+        if (swarmLevelTwoTestIndex == MAXIMUM_TESTERS) checkSmartContractVerification();
+    }
+    
+    function checkSmartContractVerification() internal {
+        // now every tester got a rating of 3 and tester list is max
+        // acceptanceMapping is for the whole smart contract verification
         for(uint i = 0; i < testers.size; i++) {
             // every tester should accept the smart contract to let it be verified
             if (acceptanceMapping[testers[i]] == false) {
+                // one tester did not accept the smart contract to be verified
+                locked = true;
                 return;
             }
         }
         // if no tester denied the smart contract, then it is verified
         isVerified = true;
-        locked = true;
     }
     
     // the tester has written a test for the to verified smart contract
@@ -170,17 +187,20 @@ contract SmartContractVerificator {
     
     function evaluateTestOfSmartContract(address _smartContractTestToEvaluate, uint8 _rating) public onlyVerifiedProgrammer {
         require(tests[_smartContractTestToEvaluate].exists, "Specified address of test for the smart contract does not exist.");
-        require((_smartContractTestToEvaluate == testerSmartContractTestMapping[msg.sender]), "You can not rate your own test.");
+        require(!testers[msg.sender].exists, "You can not rate a test if you are a tester.");
         require(!testReviewerRatingMapping[_smartContractTestToEvaluate][msg.sender].exists, "You already rated this test.");
         require(0 <= _rating && _rating <= 2, "Specified rating is not 0 or 1 or 2, but has to be.");
         
         testReviewerRatingMapping[_smartContractTestToEvaluate][msg.sender] = _rating;
+        // to get access to the reviewer with index
+        reviewerRatingMapping[reviewerRatingMappingIndex][msg.sender] = _smartContractTestToEvaluate;
+        reviewerRatingMappingIndex++;
         if (!testRatingMapping[_smartContractTestToEvaluate].exists) testRatingMapping[_smartContractTestToEvaluate].add(Rating(0, 0, 0));
         if (_rating == 0) testRatingMapping[_smartContractTestToEvaluate].zeroPoints ++;
         if (_rating == 1) testRatingMapping[_smartContractTestToEvaluate].onePoints ++;
         if (_rating == 2) testRatingMapping[_smartContractTestToEvaluate].twoPoints ++;
         
-        checkSmartContractVerification(_smartContractTestToEvaluate, msg.sender, _rating);
+        checkSwarmIntelligence(_smartContractTestToEvaluate);
     }
     
     function getTests() public onlyVerifiedProgrammer returns (address[] memory) {
