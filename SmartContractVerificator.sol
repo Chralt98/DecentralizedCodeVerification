@@ -10,11 +10,10 @@ import "./SafeMath.sol";
 // owner can not change the smart contract, there will be tests only written for this version and semantic comments
 // the reward will be distributed always for the tests and comments and semantic reviews
 contract SmartContractVerificator {
-    // final variable to occupy the smart contract verification
-    bool internal isVerified;
-    
-    // if locked is true, then the smart contract is finally verified or not and additional ratings and tests have no effect on the verification
-    bool internal locked;
+    // final verification states
+    // active at beginning for the verification process and locked if not verified by the testers 
+    enum VerificationState { VERIFIED, LOCKED, ACTIVE }
+    VerificationState public state;
     
     address constant public PROGRAMMER_VERIFICATOR = 0xE0f5206BBD039e7b0592d8918820024e2a7437b9;
 
@@ -92,6 +91,7 @@ contract SmartContractVerificator {
         wallet.transfer(msg.value);
         smartContractOwner = msg.sender;
         smartContractToVerify = _smartContract;
+        state = VerificationState.ACTIVE;
     }
     
     function increaseRewardStake() public payable onlyOwner {
@@ -103,12 +103,16 @@ contract SmartContractVerificator {
     }
     
     function isSmartContractVerified() public returns (bool) {
-        return isVerified;
+        return VerificationState.VERIFIED == state;
+    }
+    
+    function getVerificationState() public returns (VerificationState) {
+        return state;
     }
     
     // starts with one reviewer parameters
     function checkSwarmIntelligence(address _smartContractTest) internal {
-        require((locked == false), "The smart contract is already locked and the verification state is now certain.");
+        require((state == VerificationState.ACTIVE), "The smart contract is either locked or verified.");
         
         uint zeros = testRatingMapping[_smartContractTest].zeroPoints;
         uint ones = testRatingMapping[_smartContractTest].onePoints;
@@ -144,8 +148,10 @@ contract SmartContractVerificator {
             if (swarm == 0) PROGRAMMER_VERIFICATOR.evaluateProgrammer(testSmartContractTesterMapping[_smartContractTest], -2);
             if (swarm == 1) PROGRAMMER_VERIFICATOR.evaluateProgrammer(testSmartContractTesterMapping[_smartContractTest], -1);
             // remove tester and let another verified programmer get a chance to do a better test
-            testers.remove(testSmartContractTesterMapping[_smartContractTest]);
-            tests.remove(_smartContractTest);
+            // TODO: pop does not work with element, pop deletes the last element of array => search another possibility to solve this (mapping?)
+            // TODO: delete does not affect the length of the array 
+            delete testers[testSmartContractTesterMapping[_smartContractTest]];
+            delete tests[_smartContractTest];
             return;
         }
         // swarm is 3 so the tester has written a good test
@@ -159,39 +165,39 @@ contract SmartContractVerificator {
         // TODO: reward the testers!
         // now every tester got a rating of 3 and tester list is max
         // acceptanceMapping is for the whole smart contract verification
-        for(uint i = 0; i < testers.size; i++) {
+        for(uint i = 0; i < testers.length; i++) {
             // every tester should accept the smart contract to let it be verified
             if (acceptanceMapping[testers[i]] == false) {
                 // one tester did not accept the smart contract to be verified
-                locked = true;
+                state = VerificationState.LOCKED;
                 return;
             }
         }
         // if no tester denied the smart contract, then it is verified
-        isVerified = true;
+        state = VerificationState.VERIFIED;
     }
     
     // verified programmers can look up if they could test the smart contract
     function isTesterSpace() public returns (bool) {
-        return testers.size < MAXIMUM_TESTERS;
+        return testers.length < MAXIMUM_TESTERS;
     }
     
     // the tester has written a test for the to verified smart contract
     // after this the tester needs also to check another test of another tester, if not, he will not be rewarded
     function sendSmartContractTest(address _smartContractTest, bool _isAccepted) public onlyVerifiedProgrammer {
         // check if the tests and ratings are sufficing the smart contract verification 
-        require((locked == false), "The smart contract is already locked and the verification state is now certain.");
+        require((state == VerificationState.ACTIVE), "The smart contract is either locked or verified.");
         require(isContract(_smartContractTest), "Specified address is not a smart contract! Address should be a smart contract address.");
         require(!testers[msg.sender].exists, "You already sent a test for this smart contract.");
-        require(testers.size <= MAXIMUM_TESTERS, "Maximum limit of testers is reached.");
+        require(testers.length <= MAXIMUM_TESTERS, "Maximum limit of testers is reached.");
         
         address tester = msg.sender;
         
-        testers.add(tester);
+        testers.push(tester);
         acceptanceMapping[tester] = _isAccepted;
         testerSmartContractTestMapping[tester] = _smartContractTest;
         testSmartContractTesterMapping[_smartContractTest] = tester;
-        tests.add(_smartContractTest);
+        tests.push(_smartContractTest);
     }
     
     function evaluateTestOfSmartContract(address _smartContractTestToEvaluate, uint8 _rating) public onlyVerifiedProgrammer {
@@ -205,9 +211,9 @@ contract SmartContractVerificator {
         reviewerRatingMapping[reviewerRatingMappingIndex][msg.sender] = _smartContractTestToEvaluate;
         reviewerRatingMappingIndex++;
         if (!testRatingMapping[_smartContractTestToEvaluate].exists) testRatingMapping[_smartContractTestToEvaluate].add(Rating(0, 0, 0));
-        if (_rating == 0) testRatingMapping[_smartContractTestToEvaluate].zeroPoints ++;
-        if (_rating == 1) testRatingMapping[_smartContractTestToEvaluate].onePoints ++;
-        if (_rating == 2) testRatingMapping[_smartContractTestToEvaluate].twoPoints ++;
+        if (_rating == 0) testRatingMapping[_smartContractTestToEvaluate].zeroPoints++;
+        if (_rating == 1) testRatingMapping[_smartContractTestToEvaluate].onePoints++;
+        if (_rating == 2) testRatingMapping[_smartContractTestToEvaluate].twoPoints++;
         
         checkSwarmIntelligence(_smartContractTestToEvaluate);
     }
