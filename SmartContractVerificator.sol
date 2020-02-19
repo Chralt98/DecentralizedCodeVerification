@@ -9,7 +9,6 @@ import "./SafeMath.sol";
 // each registered programmer can call if the smart contract is accepted
 // owner can not change the smart contract, there will be tests only written for this version and semantic comments
 // the reward will be distributed always for the tests and comments and semantic reviews
-// TODO: how the programm can ensures that not every evaluation is trash for a quick reward ?
 contract SmartContractVerificator {
     // final variable to occupy the smart contract verification
     bool internal isVerified;
@@ -135,11 +134,15 @@ contract SmartContractVerificator {
         // evaluate the programmer which got the rating as swarm intelligence
         for (uint i = 0; i < reviewerRatingMappingIndex; i++) {
             if (testReviewerRatingMapping[_smartContractTest][reviewerRatingMapping[i]] == swarm) {
+                // TODO: programmer evaluation make the function clear to use with weight
                 PROGRAMMER_VERIFICATOR.evaluateProgrammer(reviewerRatingMapping[i], 1);
             }
         }
         // tester is too bad
         if (swarm == 0 || swarm == 1) {
+            // punish bad testers
+            if (swarm == 0) PROGRAMMER_VERIFICATOR.evaluateProgrammer(testSmartContractTesterMapping[_smartContractTest], -2);
+            if (swarm == 1) PROGRAMMER_VERIFICATOR.evaluateProgrammer(testSmartContractTesterMapping[_smartContractTest], -1);
             // remove tester and let another verified programmer get a chance to do a better test
             testers.remove(testSmartContractTesterMapping[_smartContractTest]);
             tests.remove(_smartContractTest);
@@ -153,6 +156,7 @@ contract SmartContractVerificator {
     }
     
     function checkSmartContractVerification() internal {
+        // TODO: reward the testers!
         // now every tester got a rating of 3 and tester list is max
         // acceptanceMapping is for the whole smart contract verification
         for(uint i = 0; i < testers.size; i++) {
@@ -165,6 +169,11 @@ contract SmartContractVerificator {
         }
         // if no tester denied the smart contract, then it is verified
         isVerified = true;
+    }
+    
+    // verified programmers can look up if they could test the smart contract
+    function isTesterSpace() public returns (bool) {
+        return testers.size < MAXIMUM_TESTERS;
     }
     
     // the tester has written a test for the to verified smart contract
