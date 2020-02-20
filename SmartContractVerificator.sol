@@ -12,7 +12,14 @@ import "./SafeMath.sol";
 contract SmartContractVerificator {
     // final verification states
     // active at beginning for the verification process and locked if not verified by the testers 
-    enum VerificationState { VERIFIED, LOCKED, ACTIVE }
+    enum VerificationState { ACTIVE, LOCKED, VERIFIED }
+    
+    // event triggers and subscribers to the event can see it
+    // stores the state of verification in the blockchain visible forever
+    // indexed means event is not stored in log instead in topic
+    event Verification (
+        VerificationState indexed _state
+    );
     VerificationState public state;
     
     address constant public PROGRAMMER_VERIFICATOR = 0xE0f5206BBD039e7b0592d8918820024e2a7437b9;
@@ -27,6 +34,9 @@ contract SmartContractVerificator {
     // programmers verification is only valid if it is pushed with test code and another verified programmer evaluate the test code
     address[] public testers;
     
+    event TesterJoins();
+    event TesterLeaves();
+    
     // first is verified programmer and second is if the smart contract is accepted
     // 60% of the verified programmers should accept the code to get verified
     mapping(address => bool) acceptanceMapping;
@@ -35,7 +45,9 @@ contract SmartContractVerificator {
     mapping(address => address) testerSmartContractTestMapping;
     // first is test and second is tester
     mapping(address => address) testSmartContractTesterMapping;
+    
     address[] public tests;
+    
     // first is index second is same test address
     mapping(uint => address) public swarmLevelTwoTests;
     uint swarmLevelTwoTestIndex = 0;
@@ -91,7 +103,8 @@ contract SmartContractVerificator {
         wallet.transfer(msg.value);
         smartContractOwner = msg.sender;
         smartContractToVerify = _smartContract;
-        state = VerificationState.ACTIVE;
+        // state = VerificationState.ACTIVE; => enum selects first automatically
+        emit Verification(VerificationState.ACTIVE);
     }
     
     function increaseRewardStake() public payable onlyOwner {
@@ -152,6 +165,8 @@ contract SmartContractVerificator {
             // TODO: delete does not affect the length of the array 
             delete testers[testSmartContractTesterMapping[_smartContractTest]];
             delete tests[_smartContractTest];
+            // event for other verified programmers could test
+            emit TesterLeaves();
             return;
         }
         // swarm is 3 so the tester has written a good test
@@ -170,11 +185,13 @@ contract SmartContractVerificator {
             if (acceptanceMapping[testers[i]] == false) {
                 // one tester did not accept the smart contract to be verified
                 state = VerificationState.LOCKED;
+                emit Verification(VerificationState.LOCKED);
                 return;
             }
         }
         // if no tester denied the smart contract, then it is verified
         state = VerificationState.VERIFIED;
+        emit Verification(VerificationState.VERIFIED);
     }
     
     // verified programmers can look up if they could test the smart contract
@@ -198,6 +215,8 @@ contract SmartContractVerificator {
         testerSmartContractTestMapping[tester] = _smartContractTest;
         testSmartContractTesterMapping[_smartContractTest] = tester;
         tests.push(_smartContractTest);
+        
+        emit TesterJoins();
     }
     
     function evaluateTestOfSmartContract(address _smartContractTestToEvaluate, uint8 _rating) public onlyVerifiedProgrammer {
