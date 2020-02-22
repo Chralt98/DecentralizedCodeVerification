@@ -20,7 +20,6 @@ contract SmartContractVerificator {
     event Verification (
         VerificationState indexed _state
     );
-    VerificationState public state;
     
     address constant public PROGRAMMER_VERIFICATOR = 0xE0f5206BBD039e7b0592d8918820024e2a7437b9;
 
@@ -34,6 +33,8 @@ contract SmartContractVerificator {
     // programmers verification is only valid if it is pushed with test code and another verified programmer evaluate the test code
     address[] public testers;
     
+    // if tester joins then ++ if tester leaves -- for testerNumber
+    uint testerNumber = 0;
     event TesterJoins();
     event TesterLeaves();
     
@@ -103,11 +104,10 @@ contract SmartContractVerificator {
         wallet.transfer(msg.value);
         smartContractOwner = msg.sender;
         smartContractToVerify = _smartContract;
-        // state = VerificationState.ACTIVE; => enum selects first automatically
         emit Verification(VerificationState.ACTIVE);
     }
     
-    function increaseRewardStake() public payable onlyOwner {
+    function increaseRewardStake() public payable {
         wallet.transfer(msg.value);
     }
     
@@ -116,16 +116,16 @@ contract SmartContractVerificator {
     }
     
     function isSmartContractVerified() public returns (bool) {
-        return VerificationState.VERIFIED == state;
+        return VerificationState.VERIFIED == Verification._state;
     }
     
     function getVerificationState() public returns (VerificationState) {
-        return state;
+        return Verification._state;
     }
     
     // starts with one reviewer parameters
     function checkSwarmIntelligence(address _smartContractTest) internal {
-        require((state == VerificationState.ACTIVE), "The smart contract is either locked or verified.");
+        require((Verification._state == VerificationState.ACTIVE), "The smart contract is either locked or verified.");
         
         uint zeros = testRatingMapping[_smartContractTest].zeroPoints;
         uint ones = testRatingMapping[_smartContractTest].onePoints;
@@ -167,6 +167,7 @@ contract SmartContractVerificator {
             delete tests[_smartContractTest];
             // event for other verified programmers could test
             emit TesterLeaves();
+            testerNumber--;
             return;
         }
         // swarm is 3 so the tester has written a good test
@@ -184,29 +185,28 @@ contract SmartContractVerificator {
             // every tester should accept the smart contract to let it be verified
             if (acceptanceMapping[testers[i]] == false) {
                 // one tester did not accept the smart contract to be verified
-                state = VerificationState.LOCKED;
                 emit Verification(VerificationState.LOCKED);
                 return;
             }
         }
         // if no tester denied the smart contract, then it is verified
-        state = VerificationState.VERIFIED;
         emit Verification(VerificationState.VERIFIED);
     }
     
     // verified programmers can look up if they could test the smart contract
     function isTesterSpace() public returns (bool) {
-        return testers.length < MAXIMUM_TESTERS;
+        return testerNumber < MAXIMUM_TESTERS;
     }
     
     // the tester has written a test for the to verified smart contract
     // after this the tester needs also to check another test of another tester, if not, he will not be rewarded
     function sendSmartContractTest(address _smartContractTest, bool _isAccepted) public onlyVerifiedProgrammer {
+        require(msg.sender != smartContractOwner, "As owner you are not allowed to send a test for your smart contract.");
         // check if the tests and ratings are sufficing the smart contract verification 
-        require((state == VerificationState.ACTIVE), "The smart contract is either locked or verified.");
+        require((Verification._state == VerificationState.ACTIVE), "The smart contract is either locked or verified.");
         require(isContract(_smartContractTest), "Specified address is not a smart contract! Address should be a smart contract address.");
         require(!testers[msg.sender].exists, "You already sent a test for this smart contract.");
-        require(testers.length <= MAXIMUM_TESTERS, "Maximum limit of testers is reached.");
+        require(testerNumber < MAXIMUM_TESTERS, "Maximum limit of testers is reached.");
         
         address tester = msg.sender;
         
@@ -217,9 +217,11 @@ contract SmartContractVerificator {
         tests.push(_smartContractTest);
         
         emit TesterJoins();
+        testerNumber++;
     }
     
     function evaluateTestOfSmartContract(address _smartContractTestToEvaluate, uint8 _rating) public onlyVerifiedProgrammer {
+        require(msg.sender != smartContractOwner, "As owner you are not allowed to evaluate a test for your smart contract.");
         require(tests[_smartContractTestToEvaluate].exists, "Specified address of test for the smart contract does not exist.");
         require(!testers[msg.sender].exists, "You can not rate a test if you are a tester.");
         require(!testReviewerRatingMapping[_smartContractTestToEvaluate][msg.sender].exists, "You already rated this test.");
