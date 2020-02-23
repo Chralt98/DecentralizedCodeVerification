@@ -2,8 +2,6 @@ pragma solidity ^0.6.2;
 
 import "./SafeMath.sol";
 
-// TODO: list of every verified smart contract should be saved in blockchain
-
 // smart verified programmers check smart contract code for semantic weaknesses, errors and bugs and they will test it (write a test smart contract for that)
 // let the registered programmers with the 50% best ratings get the reward stored in the wallet
 // each registered programmer can call if the smart contract is accepted
@@ -71,9 +69,6 @@ contract SmartContractVerificator {
     // first is address of smart contract, second is rating of smart contract
     mapping(address => Rating) testRatingMapping;
     
-    // wallet which holds the reward for the verificators 
-    address payable public wallet;
-    
     address public smartContractOwner;
     // owner is the creator of the to verified smart contract
     address public smartContractToVerify;
@@ -82,6 +77,8 @@ contract SmartContractVerificator {
     // for the owner, that he knows what the price should be
     mapping(address => uint256) internal bestWeiOffers;
     
+    // wallet which holds the reward for the verificators 
+    address payable public wallet;
     
     modifier onlyOwner() {
         require(msg.sender == smartContractOwner);
@@ -152,7 +149,6 @@ contract SmartContractVerificator {
         // evaluate the programmer which got the rating as swarm intelligence
         for (uint i = 0; i < reviewerRatingMappingIndex; i++) {
             if (testReviewerRatingMapping[_smartContractTest][reviewerRatingMapping[i]] == swarm) {
-                // TODO: programmer evaluation make the function clear to use with weight
                 PROGRAMMER_VERIFICATOR.evaluateProgrammer(reviewerRatingMapping[i], 1);
             }
         }
@@ -196,10 +192,10 @@ contract SmartContractVerificator {
     
     function rewardTesters() internal {
         // TODO: wei not divisible by 5 problem fix
-        uint oneTesterReward = wallet.value / 5;
         for(uint i = 0; i < testers.length; i++) {
             if (!testerBlacklist[testers[i]].exists) {
-                testers[i].transfer(oneTesterReward);
+                // TODO: not sure if wallet -> tester
+                testers[i].transfer(address(wallet).balance / MAXIMUM_TESTERS);
             }
         }
     }
