@@ -11,7 +11,7 @@ import "./SafeMath.sol";
 // the reward will be distributed always for the tests and comments and semantic reviews
 contract SmartContractVerificator {
     // final verification states
-    // active at beginning for the verification process and locked if not verified by the testers 
+    // active at beginning for the verification process and locked if not verified by the testers
     enum VerificationState { ACTIVE, LOCKED, VERIFIED }
     
     // event triggers and subscribers to the event can see it
@@ -172,16 +172,19 @@ contract SmartContractVerificator {
         swarmLevelTwoTests[swarmLevelTwoTestIndex] = _smartContractTest;
         swarmLevelTwoTestIndex++;
         // if the last swarm level 2 contract is called this function (the maximum smart contract test with rating of 3) then checkSmartContractVerification
-        if (swarmLevelTwoTestIndex == MAXIMUM_TESTERS) checkSmartContractVerification();
+        if (swarmLevelTwoTestIndex == MAXIMUM_TESTERS) {
+            rewardTesters();
+            checkSmartContractVerification();
+        }
     }
     
     function checkSmartContractVerification() internal {
-        // TODO: reward the testers!
         // now every tester got a rating of 3 and tester list is max
         // acceptanceMapping is for the whole smart contract verification
+        // use only the acceptance mapping of the five swarmLevelTwo testers!
         for(uint i = 0; i < testers.length; i++) {
             // every tester should accept the smart contract to let it be verified
-            if (acceptanceMapping[testers[i]] == false) {
+            if (!testerBlacklist[testers[i]].exists && acceptanceMapping[testers[i]] == false) {
                 // one tester did not accept the smart contract to be verified
                 emit Verification(VerificationState.LOCKED);
                 return;
@@ -189,6 +192,16 @@ contract SmartContractVerificator {
         }
         // if no tester denied the smart contract, then it is verified
         emit Verification(VerificationState.VERIFIED);
+    }
+    
+    function rewardTesters() internal {
+        // TODO: wei not divisible by 5 problem fix
+        uint oneTesterReward = wallet.value / 5;
+        for(uint i = 0; i < testers.length; i++) {
+            if (!testerBlacklist[testers[i]].exists) {
+                testers[i].transfer(oneTesterReward);
+            }
+        }
     }
     
     // verified programmers can look up if they could test the smart contract
