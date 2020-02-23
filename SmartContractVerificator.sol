@@ -32,6 +32,7 @@ contract SmartContractVerificator {
     // only verified programmer ethereum address list which registered for the verification of the smart contract
     // programmers verification is only valid if it is pushed with test code and another verified programmer evaluate the test code
     address[] public testers;
+    address[] public testerBlacklist;
     
     // if tester joins then ++ if tester leaves -- for testerNumber
     uint testerNumber = 0;
@@ -161,10 +162,7 @@ contract SmartContractVerificator {
             if (swarm == 0) PROGRAMMER_VERIFICATOR.evaluateProgrammer(testSmartContractTesterMapping[_smartContractTest], -2);
             if (swarm == 1) PROGRAMMER_VERIFICATOR.evaluateProgrammer(testSmartContractTesterMapping[_smartContractTest], -1);
             // remove tester and let another verified programmer get a chance to do a better test
-            // TODO: pop does not work with element, pop deletes the last element of array => search another possibility to solve this (mapping?)
-            // TODO: delete does not affect the length of the array 
-            delete testers[testSmartContractTesterMapping[_smartContractTest]];
-            delete tests[_smartContractTest];
+            testerBlacklist.push(testSmartContractTesterMapping[_smartContractTest]);
             // event for other verified programmers could test
             emit TesterLeaves();
             testerNumber--;
