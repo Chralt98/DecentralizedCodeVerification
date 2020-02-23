@@ -4,11 +4,8 @@ contract ProgrammerVerificator {
     address owner;
     
     address[] public verifiedProgrammers;
-    // address of ratings is one programmer
-    // uint8[] size is the amount of ratings
-    // uint8 is one rating
-    // sum of uint8s divided by uint8[] size is the percentage of good ratings  
-    mapping(address => uint8[]) public ratings;
+    // one address of ratings is one verified programmer
+    mapping(address => uint) public ratings;
     
     struct Riddle {
         string question;
@@ -72,7 +69,7 @@ contract ProgrammerVerificator {
         require(verifiedProgrammers[_programmerToEvaluate].exists, "Specified address is not in the list of verified programmers.");
         require(0 <= _rating && _rating <= 2, "Specified rating is not 0 or 1 or 2, but has to be.");
         // add rating to the verified programmer
-        ratings[_programmerToEvaluate] = ratings[_programmerToEvaluate].add(_rating);
+        ratings[_programmerToEvaluate] += _rating;
     }
     
     function getVerifiedProgrammers() public returns (address[] memory) {
@@ -98,3 +95,4 @@ contract ProgrammerVerificator {
         riddleIndex = 0;
     }
 }
+
