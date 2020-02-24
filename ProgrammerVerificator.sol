@@ -10,6 +10,7 @@ contract ProgrammerVerificator {
     mapping(address => uint) public ratings;
     // if 11 fails the user got not at least 90% for 100 questions
     uint8 constant MAXIMUM_FAILS = 11;
+    mapping(address => uint8) pointMapping;
     mapping(address => uint8) failMapping;
     mapping(address => bool) isQuestionAllowedMapping;
     
@@ -49,24 +50,10 @@ contract ProgrammerVerificator {
         return false;
     }
     
-    // TODO: question: could multiple address use this function with no mutex problems?
-    // would say yes because i am not working on global variables only with local ones
-    function letMeBeAVerifiedProgrammer() public {
-        require(!verifiedProgrammers[msg.sender].exists, "Your address is already in the verified programmer address list!");
-        require(riddles.size() >= 100, "Not enough riddles have been added by the owner. Wait until owner added at least 100 riddles. Current riddle amount is " + riddles.size());
-        // test the programmer skill with the riddles
-        // first 100 added riddles
-        uint8 _score = 0;
-        // TODO: ask the sender 100 questions with for loop (interact with him)
-        // if the sender fails 11 questions then the sender gets blacklisted  
-        bool _passed = isTestPassed(_score);
-        // TODO: if passed is false the programmer address should get blacklisted for an amount of time
-        require(_passed == true, "Test failed. Your address has not been added to the verified programmer address list.");
-        verifiedProgrammers.push(msg.sender);
-    }
-    
     // TODO: problem do not get the riddles easy out to the addresses which call this smart contract function to protect the difficulty
     function getRiddle(uint _riddleIndex) public returns(string memory, string[] memory) {
+        require(!verifiedProgrammers[msg.sender].exists, "Your address is already in the verified programmer address list!");
+        require(riddles.size() >= 100, "Not enough riddles have been added by the owner. Wait until owner added at least 100 riddles. Current riddle amount is " + riddles.size());
         require(!isQuestionAllowedMapping[msg.sender].exists || isQuestionAllowedMapping[msg.sender], "You are not allowed to get a riddle until you solve the last riddle.");
         isQuestionAllowedMapping[msg.sender] = false;
         return (riddles[_riddleIndex].question, riddles[_riddleIndex].possibleAnswers);
@@ -74,11 +61,17 @@ contract ProgrammerVerificator {
     
     // TODO: problem do not get the riddles easy out to the addresses which call this smart contract function to protect the difficulty
     function isRiddleSolved(uint _riddleIndex, uint8 _answerIndex) public returns(bool) {
+        require(!verifiedProgrammers[msg.sender].exists, "Your address is already in the verified programmer address list!");
+        require(riddles.size() >= 100, "Not enough riddles have been added by the owner. Wait until owner added at least 100 riddles. Current riddle amount is " + riddles.size());
+        // TODO for now each failer gets blacklisted forever, do we want this or use a time blacklist ?
         require(!failMapping[msg.sender].exists || failMapping[msg.sender] < MAXIMUM_FAILS, "Your address reached the maximum of fails for the riddles.");
         bool isCorrect = (riddles[_riddleIndex].correctAnswerIndex == _answerIndex);
-        if (!isCorrect) {
+        if (isCorrect) {
+            pointMapping[msg.sender]++;
+        } else {
             failMapping[msg.sender]++;
         }
+        if (isTestPassed(pointMapping[msg.sender])) verifiedProgrammers.push(msg.sender);
         isQuestionAllowedMapping[msg.sender] = true;
         return isCorrect;
     }
@@ -112,6 +105,7 @@ contract ProgrammerVerificator {
         require(0 <= _correctAnswerIndex && _correctAnswerIndex <= 2, "The correct answer index should be 0 or 1 or 2 (for 3 possible answers)!");
         riddles[riddleIndex] = Riddle(_question, _possibleAnswers, _correctAnswerIndex);
         riddleIndex++;
+        // TODO following ?
         // make an address which holds the question and answer then add the address to the list 
         // transfer this riddle to an IOTA address on the tangle and hold the transaction bundle id of iota here in eth
         // should not be made with ethereum, riddles should be in the tangle for 24/7 uptime (import the riddles into the ethereum blockchain)
@@ -120,7 +114,8 @@ contract ProgrammerVerificator {
     
     // for refreshing the riddle list that every time another riddle list is created
     function deleteRiddles() public onlyOwner {
-        riddles = [];
+        // riddles = []
+        delete riddles;
         riddleIndex = 0;
     }
 }
