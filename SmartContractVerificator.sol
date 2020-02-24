@@ -93,6 +93,7 @@ contract SmartContractVerificator {
     
     modifier onlyTester () {
         // check if msg.sender is a tester
+        // TODO: fix exists bug, the function exists does not exist :D, use mapping with bool instead
         require(testers[msg.sender].exists, "Your address is not in the tester address list.");
         _;
     }
