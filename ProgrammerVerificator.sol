@@ -1,11 +1,17 @@
 pragma solidity ^0.6.2;
 
+// TODO: problem some other attacker could use also this smart contract if the attacker finds out this smart contract address
 contract ProgrammerVerificator {
     address owner;
     
     address[] public verifiedProgrammers;
+    mapping(address => uint8) programmerScoreMapping;
     // one address of ratings is one verified programmer
     mapping(address => uint) public ratings;
+    // if 11 fails the user got not at least 90% for 100 questions
+    uint8 constant MAXIMUM_FAILS = 11;
+    mapping(address => uint8) failMapping;
+    mapping(address => bool) isQuestionAllowedMapping;
     
     struct Riddle {
         string question;
@@ -14,13 +20,17 @@ contract ProgrammerVerificator {
     }
     
     // let the examinee decide between 3 options of answers
-    // should only be 100 riddles
-    mapping(uint8 => Riddle) riddles;
+    mapping(uint => Riddle) riddles;
     uint8 riddleIndex = 0;
     
     modifier onlyVerifiedProgrammer () {
         // check if msg.sender is a verified programmer
         require(verifiedProgrammers[msg.sender].exists, "Your address is not in the verified programmer address list.");
+        _;
+    }
+    
+    modifier onlyRegisteredProgrammer () {
+        require(registeredProgrammers[msg.sender].exists, "Your address is not in the registered programmer address list.");
         _;
     }
     
@@ -48,10 +58,29 @@ contract ProgrammerVerificator {
         // first 100 added riddles
         uint8 _score = 0;
         // TODO: ask the sender 100 questions with for loop (interact with him)
+        // if the sender fails 11 questions then the sender gets blacklisted  
         bool _passed = isTestPassed(_score);
         // TODO: if passed is false the programmer address should get blacklisted for an amount of time
         require(_passed == true, "Test failed. Your address has not been added to the verified programmer address list.");
-        verifiedProgrammers.add(msg.sender);
+        verifiedProgrammers.push(msg.sender);
+    }
+    
+    // TODO: problem do not get the riddles easy out to the addresses which call this smart contract function to protect the difficulty
+    function getRiddle(uint _riddleIndex) public returns(string memory, string[] memory) {
+        require(!isQuestionAllowedMapping[msg.sender].exists || isQuestionAllowedMapping[msg.sender], "You are not allowed to get a riddle until you solve the last riddle.");
+        isQuestionAllowedMapping[msg.sender] = false;
+        return (riddles[_riddleIndex].question, riddles[_riddleIndex].possibleAnswers);
+    }
+    
+    // TODO: problem do not get the riddles easy out to the addresses which call this smart contract function to protect the difficulty
+    function isRiddleSolved(uint _riddleIndex, uint8 _answerIndex) public returns(bool) {
+        require(!failMapping[msg.sender].exists || failMapping[msg.sender] < MAXIMUM_FAILS, "Your address reached the maximum of fails for the riddles.");
+        bool isCorrect = (riddles[_riddleIndex].correctAnswerIndex == _answerIndex);
+        if (!isCorrect) {
+            failMapping[msg.sender]++;
+        }
+        isQuestionAllowedMapping[msg.sender] = true;
+        return isCorrect;
     }
     
     function isTestPassed(uint8 _score) internal returns(bool) {
