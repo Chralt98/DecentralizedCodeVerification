@@ -150,14 +150,14 @@ contract SmartContractVerificator {
         // evaluate the programmer which got the rating as swarm intelligence
         for (uint i = 0; i < reviewerRatingMappingIndex; i++) {
             if (testReviewerRatingMapping[_smartContractTest][reviewerRatingMapping[i]] == swarm) {
-                PROGRAMMER_VERIFICATOR.evaluateProgrammer(reviewerRatingMapping[i], 1);
+                PROGRAMMER_VERIFICATOR.addProgrammerPoints(reviewerRatingMapping[i], 1);
             }
         }
         // tester is too bad
         if (swarm == 0 || swarm == 1) {
             // punish bad testers
-            if (swarm == 0) PROGRAMMER_VERIFICATOR.evaluateProgrammer(testSmartContractTesterMapping[_smartContractTest], -2);
-            if (swarm == 1) PROGRAMMER_VERIFICATOR.evaluateProgrammer(testSmartContractTesterMapping[_smartContractTest], -1);
+            if (swarm == 0) PROGRAMMER_VERIFICATOR.removeProgrammerPoints(testSmartContractTesterMapping[_smartContractTest], 2);
+            if (swarm == 1) PROGRAMMER_VERIFICATOR.removeProgrammerPoints(testSmartContractTesterMapping[_smartContractTest], 1);
             // remove tester and let another verified programmer get a chance to do a better test
             testerBlacklist.push(testSmartContractTesterMapping[_smartContractTest]);
             // event for other verified programmers could test

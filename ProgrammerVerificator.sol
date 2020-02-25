@@ -41,8 +41,9 @@ contract ProgrammerVerificator {
         owner = msg.sender;
     }
     
+    // test if one address is in the verified programmer list
     function isProgrammerVerified(address _addr) public returns(bool) {
-        if (verifiedProgrammers[msg.sender]) return true;
+        if (verifiedProgrammers[_addr]) return true;
         return false;
     }
     
@@ -88,10 +89,6 @@ contract ProgrammerVerificator {
         require(0 <= _rating && _rating <= 2, "Specified rating is not 0 or 1 or 2, but has to be.");
         // add rating to the verified programmer
         ratings[_programmerToEvaluate] += _rating;
-    }
-    
-    function getVerifiedProgrammers() public returns (mapping(address => bool) memory) {
-        return verifiedProgrammers;
     }
     
     // owner could add shuffled version of riddles 
