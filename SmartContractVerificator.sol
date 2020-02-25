@@ -30,7 +30,7 @@ contract SmartContractVerificator {
     // only verified programmer ethereum address list which registered for the verification of the smart contract
     // programmers verification is only valid if it is pushed with test code and another verified programmer evaluate the test code
     address[] public testers;
-    address[] public testerBlacklist;
+    mapping(address => bool) testerBlacklist;
     
     // if tester joins then ++ if tester leaves -- for testerNumber
     uint testerNumber = 0;
@@ -54,6 +54,7 @@ contract SmartContractVerificator {
     // first is address of smart contract test
     // second is reviewer and third is rating of reviewer
     mapping(address => mapping(address => uint8)) testReviewerRatingMapping;
+    mapping(address => mapping(address => bool)) testReviewerHasRatedMapping;
     
     // first is index, second is reviewer address and third is smart contract address
     mapping(uint => mapping(address => address)) reviewerRatingMapping;
@@ -61,6 +62,7 @@ contract SmartContractVerificator {
     
     // uints are the amount of added ratings
     struct Rating {
+        bool exists;
         uint zeroPoints;
         uint onePoints;
         uint twoPoints;
@@ -94,7 +96,7 @@ contract SmartContractVerificator {
     modifier onlyTester () {
         // check if msg.sender is a tester
         // TODO: fix exists bug, the function exists does not exist :D, use mapping with bool instead
-        require(testers[msg.sender].exists, "Your address is not in the tester address list.");
+        require(addressExists(msg.sender, testers), "Your address is not in the tester address list.");
         _;
     }
     
@@ -159,7 +161,7 @@ contract SmartContractVerificator {
             if (swarm == 0) PROGRAMMER_VERIFICATOR.removeProgrammerPoints(testSmartContractTesterMapping[_smartContractTest], 2);
             if (swarm == 1) PROGRAMMER_VERIFICATOR.removeProgrammerPoints(testSmartContractTesterMapping[_smartContractTest], 1);
             // remove tester and let another verified programmer get a chance to do a better test
-            testerBlacklist.push(testSmartContractTesterMapping[_smartContractTest]);
+            testerBlacklist[testSmartContractTesterMapping[_smartContractTest]] = true;
             // event for other verified programmers could test
             emit TesterLeaves();
             testerNumber--;
@@ -181,7 +183,7 @@ contract SmartContractVerificator {
         // use only the acceptance mapping of the five swarmLevelTwo testers!
         for(uint i = 0; i < testers.length; i++) {
             // every tester should accept the smart contract to let it be verified
-            if (!testerBlacklist[testers[i]].exists && acceptanceMapping[testers[i]] == false) {
+            if (!testerBlacklist[testers[i]] && acceptanceMapping[testers[i]] == false) {
                 // one tester did not accept the smart contract to be verified
                 emit Verification(VerificationState.LOCKED);
                 return;
@@ -194,7 +196,7 @@ contract SmartContractVerificator {
     function rewardTesters() internal {
         // TODO: wei not divisible by 5 problem fix
         for(uint i = 0; i < testers.length; i++) {
-            if (!testerBlacklist[testers[i]].exists) {
+            if (!testerBlacklist[testers[i]]) {
                 // TODO: not sure if wallet -> tester
                 testers[i].transfer(address(wallet).balance / MAXIMUM_TESTERS);
             }
@@ -213,7 +215,7 @@ contract SmartContractVerificator {
         // check if the tests and ratings are sufficing the smart contract verification 
         require((Verification._state == VerificationState.ACTIVE), "The smart contract is either locked or verified.");
         require(isContract(_smartContractTest), "Specified address is not a smart contract! Address should be a smart contract address.");
-        require(!testers[msg.sender].exists, "You already sent a test for this smart contract.");
+        require(!addressExists(msg.sender, testers), "You already sent a test for this smart contract.");
         require(testerNumber < MAXIMUM_TESTERS, "Maximum limit of testers is reached.");
         
         address tester = msg.sender;
@@ -230,22 +232,30 @@ contract SmartContractVerificator {
     
     function evaluateTestOfSmartContract(address _smartContractTestToEvaluate, uint8 _rating) public onlyVerifiedProgrammer {
         require(msg.sender != smartContractOwner, "As owner you are not allowed to evaluate a test for your smart contract.");
-        require(tests[_smartContractTestToEvaluate].exists, "Specified address of test for the smart contract does not exist.");
-        require(!testers[msg.sender].exists, "You can not rate a test if you are a tester.");
-        require(!testReviewerRatingMapping[_smartContractTestToEvaluate][msg.sender].exists, "You already rated this test.");
+        require(addressExists(_smartContractTestToEvaluate, tests), "Specified address of test for the smart contract does not exist.");
+        require(!addressExists(msg.sender, testers), "You can not rate a test if you are a tester.");
+        require(!testReviewerHasRatedMapping[_smartContractTestToEvaluate][msg.sender], "You already rated this test.");
         require(0 <= _rating && _rating <= 2, "Specified rating is not 0 or 1 or 2, but has to be.");
         
+        testReviewerHasRatedMapping[_smartContractTestToEvaluate][msg.sender] = true;
         testReviewerRatingMapping[_smartContractTestToEvaluate][msg.sender] = _rating;
         // to get access to the reviewer with index
         reviewerRatingMapping[reviewerRatingMappingIndex][msg.sender] = _smartContractTestToEvaluate;
         reviewerRatingMappingIndex++;
-        if (!testRatingMapping[_smartContractTestToEvaluate].exists) testRatingMapping[_smartContractTestToEvaluate].add(Rating(0, 0, 0));
+        if (!testRatingMapping[_smartContractTestToEvaluate].exists) testRatingMapping[_smartContractTestToEvaluate].add(Rating(true, 0, 0, 0));
         if (_rating == 0) testRatingMapping[_smartContractTestToEvaluate].zeroPoints++;
         if (_rating == 1) testRatingMapping[_smartContractTestToEvaluate].onePoints++;
         if (_rating == 2) testRatingMapping[_smartContractTestToEvaluate].twoPoints++;
         
         checkSwarmIntelligence(_smartContractTestToEvaluate);
     }
+    
+    function addressExists(address element, address[] memory list) internal returns (bool) {
+        for(uint i = 0; i < list.length; i++) {
+            if(list[i] == element) return true;
+        }
+        return false;
+    } 
     
     function getTests() public onlyVerifiedProgrammer returns (address[] memory) {
         return tests;
