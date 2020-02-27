@@ -1,6 +1,6 @@
 pragma solidity ^0.6.2;
 
-contract ProgrammerVerificator {
+contract Verificator {
     address owner;
     
     mapping(address => bool) smartContractVerificatorExistanceMapping;
@@ -8,7 +8,7 @@ contract ProgrammerVerificator {
     // at the beginning each new verified programmer gets 10 start points
     uint constant INITIAL_START_POINTS = 10;
     
-    modifier onlyOwner() {
+    modifier onlyOwner() virtual {
         require(msg.sender == owner, "Your address is not the owner address!");
         _;
     }
