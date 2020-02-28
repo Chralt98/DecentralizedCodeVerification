@@ -5,6 +5,7 @@ contract Verificator {
     
     mapping(address => bool) smartContractVerificatorExistanceMapping;
     mapping(address => uint) verifiedProgrammerPointsMapping;
+    mapping(address => bool) goodProgrammerMapping;
     // at the beginning each new verified programmer gets 10 start points
     uint constant INITIAL_START_POINTS = 10;
     
@@ -29,10 +30,19 @@ contract Verificator {
         return false;
     }
     
+    function getVerifiedProgrammerPoints(address _addr) public view returns(uint) {
+        return verifiedProgrammerPointsMapping[_addr];
+    }
+    
+    function isProgrammerAllowedToTest(address _addr) public view returns(bool) {
+        return goodProgrammerMapping[_addr];
+    }
+    
     // should get called by the smart contract verificator!
     function addProgrammerPoints(address _programmer, uint8 _positivePoints) public onlySmartContractVerificator {
         require(verifiedProgrammerPointsMapping[_programmer] > 0, "Specified address is not in the list of verified programmers.");
         verifiedProgrammerPointsMapping[_programmer] += _positivePoints;
+        goodProgrammerMapping[_programmer] = true;
     }
     
     // should get called by the smart contract verificator!
@@ -45,11 +55,13 @@ contract Verificator {
             // remove points
             verifiedProgrammerPointsMapping[_programmer] -= _negativePoints;
         }
+        goodProgrammerMapping[_programmer] = false;
     }
     
     function addVerifiedProgrammer(address _programmer) public onlyOwner {
         require(verifiedProgrammerPointsMapping[_programmer] == 0, "Programmer address is already in the verified programmer address list.");
         verifiedProgrammerPointsMapping[_programmer] = INITIAL_START_POINTS;
+        goodProgrammerMapping[_programmer] = true;
     }
     
     function addSmartContractVerificator(address _smartContractVerificator) public onlyOwner {

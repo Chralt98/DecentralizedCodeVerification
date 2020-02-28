@@ -224,6 +224,7 @@ contract SmartContractVerificator is Verificator {
         // check if the tests and ratings are sufficing the smart contract verification 
         require((state == VerificationState.ACTIVE), "The smart contract is either locked or verified.");
         require(isContract(_smartContractTest), "Specified address is not a smart contract! Address should be a smart contract address.");
+        require(Verificator.isProgrammerAllowedToTest(msg.sender), "Your address is not allowed to test, because your last evaluation was not in the swarm.");
         require(!testersMapping[msg.sender], "You already sent a test for this smart contract.");
         require(testerNumber < MAXIMUM_TESTERS, "Maximum limit of testers is reached.");
         
