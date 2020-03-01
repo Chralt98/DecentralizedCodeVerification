@@ -1,3 +1,6 @@
+// INTEGRATION TEST THAT THE WEBSITE COULD ACCESS THE SMART CONTRACT VERIFICATOR IN THE RIGHT WAY
+// TODO https://www.trufflesuite.com/docs/truffle/testing/writing-tests-in-javascript
+
 const MetaCoin = artifacts.require("MetaCoin");
 
 contract('MetaCoin', (accounts) => {
