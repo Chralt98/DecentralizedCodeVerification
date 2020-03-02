@@ -4,6 +4,8 @@ import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../contracts/Verificator.sol";
 
+// IMPORTANT: problem with truffle solidity test is not allowed to set the msg.sender of the call
+
 // contract name has to start with "Test"
 contract TestTruffleVerificator {
   // Truffle will send the TestVerificator contract one Ether after deploying the contract.
