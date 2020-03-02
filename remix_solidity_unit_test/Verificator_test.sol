@@ -11,37 +11,34 @@ import "../contracts/Verificator.sol";
 contract VerificatorTest {
   Verificator verificator;
   address verificatorOwner;
-  address bob;
-  address alice;
 
   function beforeAll() public {
-    verificatorOwner = getAccount(0);
-    checkModifier(msg.sender, verificatorOwner);
+    verificatorOwner = TestsAccounts.getAccount(0);
+    compareModifier(msg.sender, verificatorOwner);
     verificator = new Verificator();
-    bob =  getAccount(1);
-    alice = getAccount(2);
   }
 
-  function getAccount(uint _index) public returns(address){
-    return TestsAccounts.getAccount(_index);
-  }
-
-  function checkModifier(address _sender, address _legitimately) public {
+  function compareModifier(address _sender, address _legitimately) internal {
     Assert.equal(_sender, _legitimately, "Not allowed to call this function.");
   }
 
-  // function name has to start with "test"
-  function testAddingVerifiedProgrammer() public {
-    checkModifier(msg.sender, verificatorOwner);
+  function checkAddingVerifiedProgrammer() public {
+    compareModifier(msg.sender, verificatorOwner);
+    address alice = TestsAccounts.getAccount(1);
     verificator.addVerifiedProgrammer(alice);
-    checkAddedVerifiedProgrammer();
-  }
-
-  // this function could be called by every address, but after adding alice as owner
-  function checkAddedVerifiedProgrammer() public {
     uint expectedProgrammerPoints = 10;
     Assert.ok(verificator.isProgrammerVerified(alice), "Programmer should be verified.");
     Assert.ok(verificator.isProgrammerAllowedToTest(alice), "Programmer should be allowed to test after adding as verified programmer.");
     Assert.equal(verificator.getVerifiedProgrammerPoints(alice), expectedProgrammerPoints, "Programmer should have 10 points initially after adding as verified programmer.");
+  }
+
+  /// #sender: account-2
+  function checkAddingVerifiedProgrammerNotLegitimate() public returns (bool) {
+    // bob is not the owner of the verificator
+    compareModifier(msg.sender, TestsAccounts.getAccount(2));
+    address alice = TestsAccounts.getAccount(1);
+    // check if transacton is correctly reverted
+    (bool success, bytes memory data) = address(verificator).call.gas(40000).value(0)(abi.encode("addVerifiedProgrammer, [alice]"));
+    return Assert.equal(success, false, "Transaction was not reverted with an invalid address.");
   }
 }
