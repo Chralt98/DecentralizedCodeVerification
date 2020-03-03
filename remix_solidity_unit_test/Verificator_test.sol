@@ -9,16 +9,8 @@ import "remix_accounts.sol";
 import "../contracts/Verificator.sol";
 
 contract VerificatorTest {
-  address verificatorOwner;
-  Verificator ownerVerificator;
 
-  /// #sender: account-0
-  /// #value: 100
-  function beforeAll() public {
-    verificatorOwner = TestsAccounts.getAccount(0);
-    compareModifier(msg.sender, verificatorOwner);
-    ownerVerificator = new Verificator();
-  }
+  function beforeAll() public {}
 
   function compareModifier(address _sender, address _legitimately) internal {
     Assert.equal(_sender, _legitimately, "Not allowed to call this function.");
@@ -27,41 +19,52 @@ contract VerificatorTest {
   /// #sender: account-0
   /// #value: 100
   function checkAddingVerifiedProgrammer() public {
+    address verificatorOwner = TestsAccounts.getAccount(0);
     compareModifier(msg.sender, verificatorOwner);
-
+    Verificator verificator = new Verificator();
     address alice = TestsAccounts.getAccount(1);
-    ownerVerificator.addVerifiedProgrammer(alice);
+    verificator.addVerifiedProgrammer(alice);
     uint expectedProgrammerPoints = 10;
-    Assert.ok(ownerVerificator.isProgrammerVerified(alice), "Programmer should be verified.");
-    Assert.ok(ownerVerificator.isProgrammerAllowedToTest(alice), "Programmer should be allowed to test after adding as verified programmer.");
-    Assert.equal(ownerVerificator.getVerifiedProgrammerPoints(alice), expectedProgrammerPoints, "Programmer should have 10 points initially after adding as verified programmer.");
+    Assert.ok(verificator.isProgrammerVerified(alice), "Programmer should be verified.");
+    Assert.ok(verificator.isProgrammerAllowedToTest(alice), "Programmer should be allowed to test after adding as verified programmer.");
+    Assert.equal(verificator.getVerifiedProgrammerPoints(alice), expectedProgrammerPoints, "Programmer should have 10 points initially after adding as verified programmer.");
 
-    (bool success, bytes memory data) = address(ownerVerificator).call.gas(40000).value(0)(abi.encodeWithSignature("addVerifiedProgrammer(address)", alice));
+    (bool success, bytes memory data) = address(verificator).call.gas(40000).value(0)(abi.encodeWithSignature("addVerifiedProgrammer(address)", alice));
     Assert.equal(success, false, "Transaction should revert if address is already verified.");
   }
 
+  /// #sender: account-0
+  function getOwnerVerificator() public returns (Verificator) {
+    return new Verificator();
+  }
+
   /// #sender: account-2
-  function checkAddingVerifiedProgrammerNotLegitimate() public {
+  function checkAddingVerifiedProgrammerNotLegitimate() public{
     address bob = TestsAccounts.getAccount(2);
     compareModifier(msg.sender, bob);
+
+    Verificator verificator = getOwnerVerificator();
+
     // bob tries to verify himself which should be reverted correctly
-    (bool success, bytes memory data) = address(ownerVerificator).call.gas(40000).value(0)(abi.encodeWithSignature("addVerifiedProgrammer(address)", bob));
+    (bool success, bytes memory data) = address(verificator).call.gas(40000).value(0)(abi.encodeWithSignature("addVerifiedProgrammer(address)", bob));
     Assert.equal(success, false, "Transaction should revert if address is not legitimate to add a verified programmer.");
 
-    Assert.equal(ownerVerificator.isProgrammerVerified(bob), false, "Programmer is not verified.");
+    // TODO fix this issue
+    Assert.equal(verificator.isProgrammerVerified(bob), false, "Programmer is not verified.");
 
-    ownerVerificator.addVerifiedProgrammer(bob);
+    verificator.addVerifiedProgrammer(bob);
 
     // TODO should fail because account-2 shouldnt be able to call addVerifiedProgrammer....
     // bob is not the owner of the smart contract, so he cannot add verified programmer
-    Assert.equal(ownerVerificator.isProgrammerVerified(bob), true, "Programmer is verified.");
+    Assert.equal(verificator.isProgrammerVerified(bob), true, "Programmer is verified.");
   }
 
   /// #sender: account-0
   /// #value: 100
   function checkAddingSmartContractVerificator() public {
+    address verificatorOwner = TestsAccounts.getAccount(0);
     compareModifier(msg.sender, verificatorOwner);
-    Verificator verificator = new Verificator();
+    Verificator verificator = getOwnerVerificator();
 
     address smartContractVerificator = TestsAccounts.getAccount(2);
     verificator.addSmartContractVerificator(smartContractVerificator);
@@ -71,17 +74,31 @@ contract VerificatorTest {
     Assert.ok(verificator.isProgrammerVerified(alice), "Programmer should be verified.");
 
     uint8 positivePoints = 2;
-    // should only get called by smartContractVerificator
-    (bool success, bytes memory data) = smartContractVerificator.call.gas(40000).value(0)(abi.encodeWithSignature("addProgrammerPoints(address,uint8)", alice, positivePoints));
-    Assert.equal(success, true, "Transaction should not revert if programmer is verified.");
+
+    // checkAddingProgrammerPoints() is called by smart contract verificator (account 2)
+    Assert.equal(checkAddingProgrammerPointsAccount2(alice, positivePoints, verificator), true, "Transaction should not revert if programmer is verified.");
 
     Assert.equal(verificator.isSmartContractVerificator(verificatorOwner), false, "Owner should not be a smart contract verificator.");
-    // fails if the caller is no smart contract verificator
-    (success, data) = verificatorOwner.call.gas(40000).value(0)(abi.encodeWithSignature("addProgrammerPoints(address,uint8)", address(alice), uint8(positivePoints)));
-    Assert.equal(success, false, "Transaction should revert if the caller is not a smart contract verificator.");
+    // fails if the caller account-0 is no smart contract verificator
+    Assert.equal(checkAddingProgrammerPointsAccount0(alice, positivePoints, verificator), false, "Transaction should revert if the caller is not a smart contract verificator.");
 
     // fails if the programmer address is not in the verified programmer list
-    (success, data) = smartContractVerificator.call.gas(40000).value(0)(abi.encodeWithSignature("addProgrammerPoints(address,uint8)", TestsAccounts.getAccount(0), positivePoints));
-    Assert.equal(success, false, "Transaction should revert if the programmer is not verified.");
+    Assert.equal(checkAddingProgrammerPointsAccount0(TestsAccounts.getAccount(0), positivePoints, verificator), false, "Transaction should revert if the programmer is not verified.");
+  }
+
+  /// #sender: account-2
+  function checkAddingProgrammerPointsAccount2(address _addr, uint8 _positivePoints, Verificator verificator) internal returns (bool) {
+    compareModifier(msg.sender, TestsAccounts.getAccount(2));
+    // should only get called by smartContractVerificator (account-2)
+    (bool success, bytes memory data) = address(verificator).call.gas(40000).value(0)(abi.encodeWithSignature("addProgrammerPoints(address,uint8)", _addr, _positivePoints));
+    return success;
+  }
+
+  /// #sender: account-0
+  function checkAddingProgrammerPointsAccount0(address _addr, uint8 _positivePoints, Verificator verificator) internal returns (bool) {
+    compareModifier(msg.sender, TestsAccounts.getAccount(0));
+    // should only get called by smartContractVerificator (account-2) => should revert
+    (bool success, bytes memory data) = address(verificator).call.gas(40000).value(0)(abi.encodeWithSignature("addProgrammerPoints(address,uint8)", _addr, _positivePoints));
+    return success;
   }
 }
