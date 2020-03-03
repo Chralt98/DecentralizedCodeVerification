@@ -38,6 +38,10 @@ contract Verificator {
         return goodProgrammerMapping[_addr];
     }
 
+    function isSmartContractVerificator(address _addr) public view returns(bool) {
+        return smartContractVerificatorExistanceMapping[_addr];
+    }
+
     // should get called by the smart contract verificator!
     function addProgrammerPoints(address _programmer, uint8 _positivePoints) public onlySmartContractVerificator {
         require(verifiedProgrammerPointsMapping[_programmer] > 0, "Specified address is not in the list of verified programmers.");
