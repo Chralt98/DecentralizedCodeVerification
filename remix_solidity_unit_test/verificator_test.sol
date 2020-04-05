@@ -12,6 +12,7 @@ contract VerificatorTest is Verificator {
   address creator;
   address verifiedProgrammer;
   address smartContractVerificator;
+  address bob;
 
   function beforeAll() public {
     creator = TestsAccounts.getAccount(0);
@@ -33,8 +34,7 @@ contract VerificatorTest is Verificator {
     Assert.ok(isProgrammerAllowedToTest(verifiedProgrammer), "Programmer should be allowed to test after adding as verified programmer.");
     Assert.equal(getVerifiedProgrammerPoints(verifiedProgrammer), expectedProgrammerPoints, "Programmer should have 10 points initially after adding as verified programmer.");
 
-    // addVerifiedProgrammer only callable by creator
-    (bool success, bytes memory data) = address(creator).call.gas(40000).value(0)(abi.encodeWithSignature("addVerifiedProgrammer(address)", verifiedProgrammer));
+    (bool success, bytes memory data) = address(this).call.gas(40000).value(0)(abi.encodeWithSignature("addVerifiedProgrammer(address)", verifiedProgrammer));
     Assert.equal(success, false, "Transaction should revert if address is already verified.");
   }
 
@@ -73,7 +73,7 @@ contract VerificatorTest is Verificator {
     address notVerifiedProgrammer = creator;
     uint8 positivePoints = 2;
     // fails if the programmer address is not in the verified programmer list
-    (bool success, bytes memory data) = address(smartContractVerificator).call.gas(40000).value(0)(abi.encodeWithSignature("addProgrammerPoints(address,uint8)", notVerifiedProgrammer, positivePoints));
+    (bool success, bytes memory data) = address(this).call.gas(40000).value(0)(abi.encodeWithSignature("addProgrammerPoints(address,uint8)", notVerifiedProgrammer, positivePoints));
     Assert.equal(getVerifiedProgrammerPoints(notVerifiedProgrammer), 0, "Not verified programmer should have zero points.");
     Assert.equal(success, false, "Transaction should revert if the programmer is not verified.");
   }
