@@ -124,7 +124,6 @@ contract SmartContractVerificator is Verificator {
 
     function isSmartContractVerified() public view returns (bool) {
         return VerificationState.VERIFIED == state;
-
     }
 
     function getVerificationState() public view returns (VerificationState) {
