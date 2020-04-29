@@ -81,7 +81,7 @@ contract SmartContractVerificator is Verificator {
 
     // only one wei best offer for one verified programmer
     // for the owner, that he knows what the price should be
-    uint256[] internal bestWeiOffers;
+    uint256[] public bestWeiOffers;
     mapping(address => bool) alreadyOffered;
 
     // wallet which holds the reward for the verificators
