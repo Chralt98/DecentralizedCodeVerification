@@ -79,11 +79,6 @@ contract SmartContractVerificator is Verificator {
     // owner is the creator of the to verified smart contract
     address public smartContractToVerify;
 
-    // only one wei best offer for one verified programmer
-    // for the owner, that he knows what the price should be
-    uint256[] public bestWeiOffers;
-    mapping(address => bool) alreadyOffered;
-
     // wallet which holds the reward for the verificators
     address payable public wallet;
 
@@ -263,22 +258,9 @@ contract SmartContractVerificator is Verificator {
         return tests;
     }
 
-    // verified programmer could suggest an amount the owner should pay
-    function sendBestWeiOffer(uint256 _weiAmount) public onlyVerifiedProgrammer {
-        require(alreadyOffered[msg.sender] == false, "You already offered a wei amount to the owner.");
-        alreadyOffered[msg.sender] = true;
-        bestWeiOffers.push(_weiAmount);
-    }
-
-    // smart contract owner could see the price suggestions
-    // only accessible because others should not see which price a verified programmer would pay
-    function getBestWeiOffers() public view onlyOwner returns (uint256[] memory) {
-        return bestWeiOffers;
-    }
-
     // that others could see what the reward is
     function getRewardWalletAddress() public view returns(address) {
-        return wallet;
+        return address(wallet);
     }
 
     function isContract(address _addr) internal view returns (bool) {
