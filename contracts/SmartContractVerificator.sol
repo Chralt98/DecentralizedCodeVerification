@@ -110,7 +110,17 @@ contract SmartContractVerificator is Verificator {
     }
 
     function increaseRewardStake() public payable {
+        require((state == VerificationState.ACTIVE), "The smart contract is already locked or verified.");
         wallet.transfer(msg.value);
+    }
+
+    // that others could see what the reward is
+    function getRewardWalletAddress() public view returns(address) {
+        return address(wallet);
+    }
+
+    function getRewardAmount() public view returns (uint) {
+      return address(wallet).balance;
     }
 
     function getSmartContractToVerify() public view returns (address) {
@@ -256,11 +266,6 @@ contract SmartContractVerificator is Verificator {
 
     function getTests() public view onlyVerifiedProgrammer returns (address[] memory) {
         return tests;
-    }
-
-    // that others could see what the reward is
-    function getRewardWalletAddress() public view returns(address) {
-        return address(wallet);
     }
 
     function isContract(address _addr) internal view returns (bool) {

@@ -17,5 +17,10 @@ contract('SmartContractVerificator', (accounts) => {
 
   it('should increase reward stake', async () => {
     // test reward stake wallet
+    const payer = accounts[1];
+    let balanceBefore = await web3.eth.getBalance(await this.verificatorInstance.getRewardWalletAddress());
+    await this.verificatorInstance.increaseRewardStake({from: payer, value: 1000000000000000000}).then(async () => {
+      assert.equal(Number(balanceBefore) + 1000000000000000000, Number(await web3.eth.getBalance(await this.verificatorInstance.getRewardWalletAddress())), "Should have 1 ether more now.");
+    });
   });
 });
