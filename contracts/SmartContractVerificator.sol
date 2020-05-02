@@ -131,8 +131,14 @@ contract SmartContractVerificator is Verificator {
         return VerificationState.VERIFIED == state;
     }
 
-    function getVerificationState() public view returns (VerificationState) {
-        return state;
+    function getVerificationState() public view returns (string memory) {
+        if (state == VerificationState.LOCKED) {
+            return "LOCKED";
+        } else if (state == VerificationState.VERIFIED) {
+            return "VERIFIED";
+        } else {
+            return "ACTIVE";
+        }
     }
 
     // starts with one reviewer parameters
