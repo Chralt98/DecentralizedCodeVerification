@@ -222,11 +222,6 @@ contract SmartContractVerificator is Verificator {
         }
     }
 
-    // verified programmers can look up if they could test the smart contract
-    function isTesterSpace() public view returns (bool) {
-        return testerNumber < MAXIMUM_TESTERS;
-    }
-
     // the tester has written a test for the to verified smart contract
     // after this the tester needs also to check another test of another tester, if not, he will not be rewarded
     function sendSmartContractTest(address _smartContractTest, bool _isAccepted) public onlyVerifiedProgrammer {
@@ -272,6 +267,11 @@ contract SmartContractVerificator is Verificator {
 
     function getTests() public view onlyVerifiedProgrammer returns (address[] memory) {
         return tests;
+    }
+
+    // verified programmers can look up if they could test the smart contract
+    function isTesterSpace() public view returns (bool) {
+        return testerNumber < MAXIMUM_TESTERS;
     }
 
     function isContract(address _addr) internal view returns (bool) {
