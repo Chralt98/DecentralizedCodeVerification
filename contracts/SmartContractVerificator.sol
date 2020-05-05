@@ -89,6 +89,7 @@ contract SmartContractVerificator is Verificator {
 
     modifier onlyVerifiedProgrammer () {
         // check if msg.sender is a verified programmer
+        // TODO: problem: use the correct instance of verificator and call it from there
         require(Verificator.isProgrammerVerified(msg.sender), "Your address is not in the verified programmer address list.");
         _;
     }

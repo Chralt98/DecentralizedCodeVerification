@@ -23,6 +23,7 @@ contract('SmartContractVerificator', (accounts) => {
     const programmer = accounts[2];
     await this.verificatorInstance.addVerifiedProgrammer(programmer).then(async () => {
       await this.verificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: programmer}).then(async () => {
+        console.log(this.smartContractTest.address);
         assert.isOk(this.verificatorInstance.isTesterSpace(), "Tester space shouldn't be full");
         // TODO check if test is added:
         console.log(this.verificatorInstance.getTests({from: programmer}));
