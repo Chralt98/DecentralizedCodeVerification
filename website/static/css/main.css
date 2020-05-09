@@ -1,3 +1,9 @@
+/* Show it is fixed to the top */
+body {
+  min-height: 75rem;
+  padding-top: 4.5rem;
+}
+
 .background-color {
     background-color: #f2f2f2 !important;
 }
@@ -14,4 +20,10 @@
 h2.quote {
     font-size: 40px;
     margin: 50px 0 50px;
+}
+
+@media (min-width: 576px) {
+    .profile-picture img {
+        max-width: 75% !important;
+    }
 }
