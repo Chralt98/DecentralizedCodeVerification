@@ -8,10 +8,10 @@ import "./Verificator.sol";
 // each registered programmer can call if the smart contract is accepted
 // owner can not change the smart contract, there will be tests only written for this version and semantic comments
 // the reward will be distributed always for the tests and comments and semantic reviews
-contract SmartContractVerificator is Verificator {
+contract SmartContractVerificator {
     // final verification states
     // active at beginning for the verification process and locked if not verified by the testers
-    enum VerificationState { ACTIVE, LOCKED, VERIFIED }
+    enum VerificationState {ACTIVE, LOCKED, VERIFIED}
 
     // event triggers and subscribers to the event can see it
     // stores the state of verification in the blockchain visible forever
@@ -19,10 +19,10 @@ contract SmartContractVerificator is Verificator {
     event Verification (
         VerificationState indexed _state
     );
+
     VerificationState state;
 
-    // TODO make sure that only the valid verificator of the enterprise is inherited
-    // address constant public PROGRAMMER_VERIFICATOR = 0x692a70D2e424a56D2C6C27aA97D1a86395877b3A;
+    Verificator public programmerVerificator;
 
     // maximal five testers are possible
     uint8 public constant MAXIMUM_TESTERS = 5;
@@ -39,6 +39,7 @@ contract SmartContractVerificator is Verificator {
 
     // if tester joins then ++ if tester leaves -- for testerNumber
     uint testerNumber = 0;
+
     event TesterJoins();
     event TesterLeaves();
 
@@ -82,15 +83,14 @@ contract SmartContractVerificator is Verificator {
     // wallet which holds the reward for the verificators
     address payable public wallet;
 
-    modifier onlyOwner() override {
+    modifier onlyOwner() {
         require(msg.sender == smartContractOwner);
         _;
     }
 
     modifier onlyVerifiedProgrammer () {
         // check if msg.sender is a verified programmer
-        // TODO: problem: use the correct instance of verificator and call it from there
-        require(Verificator.isProgrammerVerified(msg.sender), "Your address is not in the verified programmer address list.");
+        require(programmerVerificator.isProgrammerVerified(msg.sender), "Your address is not in the verified programmer address list.");
         _;
     }
 
@@ -101,11 +101,12 @@ contract SmartContractVerificator is Verificator {
         _;
     }
 
-    constructor(address _smartContract) public payable {
+    constructor(address _smartContract, Verificator _programmerVerificator) public payable {
         require(isContract(_smartContract), "Specified address is not a smart contract! Address should be a smart contract address.");
         wallet.transfer(msg.value);
         smartContractOwner = msg.sender;
         smartContractToVerify = _smartContract;
+        programmerVerificator = _programmerVerificator;
         state = VerificationState.ACTIVE;
         emit Verification(VerificationState.ACTIVE);
     }
@@ -116,12 +117,12 @@ contract SmartContractVerificator is Verificator {
     }
 
     // that others could see what the reward is
-    function getRewardWalletAddress() public view returns(address) {
+    function getRewardWalletAddress() public view returns (address) {
         return address(wallet);
     }
 
     function getRewardAmount() public view returns (uint) {
-      return address(wallet).balance;
+        return address(wallet).balance;
     }
 
     function getSmartContractToVerify() public view returns (address) {
@@ -170,14 +171,14 @@ contract SmartContractVerificator is Verificator {
         // evaluate the programmer which got the rating as swarm intelligence
         for (uint i = 0; i < reviewer.length; i++) {
             if (testReviewerRatingMapping[_smartContractTest][reviewer[i]] == swarm) {
-                Verificator.addProgrammerPoints(reviewer[i], 1);
+                programmerVerificator.addProgrammerPoints(reviewer[i], 1);
             }
         }
         // tester is too bad
         if (swarm == 0 || swarm == 1) {
             // punish bad testers
-            if (swarm == 0) Verificator.removeProgrammerPoints(testSmartContractTesterMapping[_smartContractTest], 2);
-            if (swarm == 1) Verificator.removeProgrammerPoints(testSmartContractTesterMapping[_smartContractTest], 1);
+            if (swarm == 0) programmerVerificator.removeProgrammerPoints(testSmartContractTesterMapping[_smartContractTest], 2);
+            if (swarm == 1) programmerVerificator.removeProgrammerPoints(testSmartContractTesterMapping[_smartContractTest], 1);
             // remove tester and let another verified programmer get a chance to do a better test
             testerBlacklist[testSmartContractTesterMapping[_smartContractTest]] = true;
             // event for other verified programmers could test
@@ -199,7 +200,7 @@ contract SmartContractVerificator is Verificator {
         // now every tester got a rating of 3 and tester list is max
         // acceptanceMapping is for the whole smart contract verification
         // use only the acceptance mapping of the five swarmLevelTwo testers!
-        for(uint i = 0; i < testers.length; i++) {
+        for (uint i = 0; i < testers.length; i++) {
             // every tester should accept the smart contract to let it be verified
             if (!testerBlacklist[testers[i]] && acceptanceMapping[testers[i]] == false) {
                 // one tester did not accept the smart contract to be verified
@@ -215,7 +216,7 @@ contract SmartContractVerificator is Verificator {
 
     function rewardTesters() internal {
         // TODO: wei not divisible by 5 problem fix
-        for(uint i = 0; i < testers.length; i++) {
+        for (uint i = 0; i < testers.length; i++) {
             if (!testerBlacklist[testers[i]]) {
                 // TODO: not sure if wallet -> tester
                 testers[i].transfer(address(wallet).balance / MAXIMUM_TESTERS);
@@ -230,7 +231,7 @@ contract SmartContractVerificator is Verificator {
         // check if the tests and ratings are sufficing the smart contract verification
         require((state == VerificationState.ACTIVE), "The smart contract is either locked or verified.");
         require(isContract(_smartContractTest), "Specified address is not a smart contract! Address should be a smart contract address.");
-        require(Verificator.isProgrammerAllowedToTest(msg.sender), "Your address is not allowed to test, because your last evaluation was not in the swarm.");
+        require(programmerVerificator.isProgrammerAllowedToTest(msg.sender), "Your address is not allowed to test, because your last evaluation was not in the swarm.");
         require(!testersMapping[msg.sender], "You already sent a test for this smart contract.");
         require(testerNumber < MAXIMUM_TESTERS, "Maximum limit of testers is reached.");
 
@@ -277,7 +278,7 @@ contract SmartContractVerificator is Verificator {
 
     function isContract(address _addr) internal view returns (bool) {
         uint size;
-        assembly { size := extcodesize(_addr) }
+        assembly {size := extcodesize(_addr)}
         return size > 0;
     }
 }

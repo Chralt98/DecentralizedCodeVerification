@@ -27,3 +27,34 @@ h2.quote {
         max-width: 75% !important;
     }
 }
+
+
+.card-img-top {
+    width: 100%;
+    height: 50vw;
+    object-fit: cover;
+}
+
+@media (min-width: 576px) {
+    .card-img-top {
+        height: 278px;
+    }
+}
+
+@media (min-width: 768px) {
+    .card-img-top {
+        height: 152px;
+    }
+}
+
+@media (min-width: 992px) {
+    .card-img-top {
+        height: 210px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .card-img-top {
+        height: 255px;
+    }
+}
