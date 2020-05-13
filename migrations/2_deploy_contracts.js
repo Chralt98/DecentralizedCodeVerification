@@ -10,7 +10,7 @@ module.exports = function (deployer) {
     deployer.deploy(Verificator).then(function () {
         deployer.deploy(MockSmartContractToVerify).then(function () {
             // MockSmartContract.address and Verificator.address is an argument
-            return deployer.deploy(SmartContractVerificator, MockSmartContractToVerify.address, Verificator)
+            return deployer.deploy(SmartContractVerificator, MockSmartContractToVerify.address)
         });
     });
 
