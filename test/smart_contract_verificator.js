@@ -26,7 +26,6 @@ contract('SmartContractVerificator', (accounts) => {
         const programmer = accounts[2];
         await this.verificatorInstance.addVerifiedProgrammer(programmer).then(async () => {
             await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: programmer}).then(async () => {
-                console.log(this.smartContractTest.address);
                 assert.isOk(this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full");
                 // TODO check if test is added:
                 console.log(this.smartContractVerificatorInstance.getTests({from: programmer}));
@@ -38,13 +37,14 @@ contract('SmartContractVerificator', (accounts) => {
     it('should increase reward stake', async () => {
         // test reward stake wallet
         const payer = accounts[1];
-        await this.smartContractVerificatorInstance.getRewardAmount().then(async (balanceBefore) => {
-            await this.smartContractVerificatorInstance.increaseRewardStake({
-                from: payer,
-                value: 1e18
-            }).then(async () => {
-                assert.equal(web3.utils.toBN(1e18 + balanceBefore), web3.utils.toBN(await this.smartContractVerificatorInstance.getRewardAmount()), "Should have 1 ether more now.");
-            });
+        var BN = web3.utils.BN;
+        var balanceBefore = await this.smartContractVerificatorInstance.getRewardAmount();
+        await this.smartContractVerificatorInstance.increaseRewardStake({
+            from: payer,
+            value: 123456
+        }).then(async () => {
+            // added 2000610580000000000 automatically plus additional 123456
+            assert.equal((new BN('2000610580000123456').add(balanceBefore)).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 123456 more now.");
         });
     });
 });
