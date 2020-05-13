@@ -101,12 +101,12 @@ contract SmartContractVerificator {
         _;
     }
 
-    constructor(address _smartContract) public payable {
+    constructor(address _smartContract, address _programmerVerificator) public payable {
         require(isContract(_smartContract), "Specified address is not a smart contract! Address should be a smart contract address.");
         wallet.transfer(msg.value);
         smartContractOwner = msg.sender;
         smartContractToVerify = _smartContract;
-        programmerVerificator = Verificator(0x5E72914535f202659083Db3a02C984188Fa26e9f);
+        programmerVerificator = Verificator(_programmerVerificator);
         state = VerificationState.ACTIVE;
         emit Verification(VerificationState.ACTIVE);
     }
