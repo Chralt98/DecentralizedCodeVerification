@@ -267,6 +267,7 @@ contract SmartContractVerificator {
         checkSwarmIntelligence(_smartContractTestToEvaluate);
     }
 
+    // TODO: tester could send tests to owner before owner paid
     function getTests() public view onlyVerifiedProgrammer returns (address[] memory) {
         return tests;
     }

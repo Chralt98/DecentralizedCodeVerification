@@ -26,10 +26,15 @@ contract('SmartContractVerificator', (accounts) => {
         const programmer = accounts[2];
         await this.verificatorInstance.addVerifiedProgrammer(programmer).then(async () => {
             await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: programmer}).then(async () => {
-                assert.isOk(this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full");
-                // TODO check if test is added:
-                console.log(this.smartContractVerificatorInstance.getTests({from: programmer}));
-                assert.isOk(this.smartContractVerificatorInstance.getTests({from: programmer}), "Test should be added.");
+                assert.isOk(this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
+                assert.equal(1, (await this.smartContractVerificatorInstance.getTests({from: programmer})).length, "One test should have been added.")
+            });
+        });
+        const anotherProgrammer = accounts[3];
+        await this.verificatorInstance.addVerifiedProgrammer(anotherProgrammer).then(async () => {
+            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: anotherProgrammer}).then(async () => {
+                assert.isOk(this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
+                assert.equal(2, (await this.smartContractVerificatorInstance.getTests({from: anotherProgrammer})).length, "One test should have been added.")
             });
         });
     });
