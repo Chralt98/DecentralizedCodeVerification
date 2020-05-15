@@ -84,7 +84,7 @@ contract SmartContractVerificator {
     address payable public wallet;
 
     modifier onlyOwner() {
-        require(msg.sender == smartContractOwner);
+        require(msg.sender == smartContractOwner, "You are not the owner.");
         _;
     }
 
@@ -94,9 +94,13 @@ contract SmartContractVerificator {
         _;
     }
 
+    modifier onlyOwnerAndVerifiedProgrammer () {
+        require(programmerVerificator.isProgrammerVerified(msg.sender) || msg.sender == smartContractOwner, "You have to be a verified programmer or the owner.");
+        _;
+    }
+
     modifier onlyTester () {
         // check if msg.sender is a tester
-        // TODO: fix exists bug, the function exists does not exist :D, use mapping with bool instead
         require(testersMapping[msg.sender], "Your address is not in the tester address list.");
         _;
     }
@@ -267,8 +271,7 @@ contract SmartContractVerificator {
         checkSwarmIntelligence(_smartContractTestToEvaluate);
     }
 
-    // TODO: tester could send tests to owner before owner paid
-    function getTests() public view onlyVerifiedProgrammer returns (address[] memory) {
+    function getTests() public view onlyOwnerAndVerifiedProgrammer returns (address[] memory) {
         return tests;
     }
 

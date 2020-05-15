@@ -4,10 +4,6 @@ const MockSmartContractTest = artifacts.require("MockSmartContractTest");
 const Verificator = artifacts.require("Verificator");
 
 contract('SmartContractVerificator', (accounts) => {
-    var verificatorInstance;
-    var smartContractVerificatorInstance;
-    var smartContractToVerify;
-    var smartContractTest;
 
     before(async () => {
         this.smartContractVerificatorInstance = await SmartContractVerificator.deployed();
@@ -23,20 +19,75 @@ contract('SmartContractVerificator', (accounts) => {
     });
 
     it('should send smart contract test', async () => {
-        const programmer = accounts[2];
-        await this.verificatorInstance.addVerifiedProgrammer(programmer).then(async () => {
-            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: programmer}).then(async () => {
-                assert.isOk(this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
-                assert.equal(1, (await this.smartContractVerificatorInstance.getTests({from: programmer})).length, "One test should have been added.")
-            });
+        const owner = accounts[0];
+        await this.verificatorInstance.addVerifiedProgrammer(owner).then(async () => {
+            assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
+            try {
+                // cause error because owner should not sent a test for his own contract
+                await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: owner});
+            } catch (e) {
+                var err = e;
+            }
+            assert.isOk(err instanceof Error, "Transaction was not reverted although owner should not sent a test.");
         });
-        const anotherProgrammer = accounts[3];
-        await this.verificatorInstance.addVerifiedProgrammer(anotherProgrammer).then(async () => {
-            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: anotherProgrammer}).then(async () => {
-                assert.isOk(this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
-                assert.equal(2, (await this.smartContractVerificatorInstance.getTests({from: anotherProgrammer})).length, "One test should have been added.")
-            });
+
+        const verifiedProgrammer = accounts[1];
+        await this.verificatorInstance.addVerifiedProgrammer(verifiedProgrammer);
+
+        assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
+        try {
+            // cause error because address should be a smart contract address, not a personal address
+            await this.smartContractVerificatorInstance.sendSmartContractTest(accounts[42], true, {from: programmer});
+        } catch (e) {
+            var err = e;
+        }
+        assert.isOk(err instanceof Error, "Transaction was not reverted although passed address is not a smart contract.");
+
+        const notVerifiedProgrammer = accounts[2];
+        assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
+        try {
+            // cause error because address should be a smart contract address, not a personal address
+            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: notVerifiedProgrammer});
+        } catch (e) {
+            var err = e;
+        }
+        assert.isOk(err instanceof Error, "Transaction was not reverted although passed address is not a smart contract.");
+
+        assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
+        await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: verifiedProgrammer}).then(async () => {
+            assert.equal(1, (await this.smartContractVerificatorInstance.getTests({from: verifiedProgrammer})).length, "One test should have been added.")
         });
+
+        assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
+        try {
+            // cause error because address should be a smart contract address, not a personal address
+            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: verifiedProgrammer});
+        } catch (e) {
+            var err = e;
+        }
+        assert.isOk(err instanceof Error, "Transaction was not reverted although programmer already sent a test for this smart contract.");
+
+        for (let i = 3; i < 7; i++) {
+            assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
+            const anotherProgrammer = accounts[i];
+            await this.verificatorInstance.addVerifiedProgrammer(anotherProgrammer).then(async () => {
+                await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: anotherProgrammer}).then(async () => {
+                    assert.equal(i - 1, (await this.smartContractVerificatorInstance.getTests({from: anotherProgrammer})).length, "Another test should have been added.")
+                });
+            });
+        }
+
+        const anotherProgrammer = accounts[7];
+        assert.equal(false, await this.smartContractVerificatorInstance.isTesterSpace(), "There should be no tester space.");
+        await this.verificatorInstance.addVerifiedProgrammer(anotherProgrammer);
+        try {
+            // cause error because address should be a smart contract address, not a personal address
+            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: anotherProgrammer});
+        } catch (e) {
+            var err = e;
+        }
+        assert.isOk(err instanceof Error, "Transaction was not reverted although test limit reached maximum of 5.");
+
     });
 
     it('should increase reward stake', async () => {
@@ -51,5 +102,9 @@ contract('SmartContractVerificator', (accounts) => {
             // added 2000610580000000000 automatically plus additional 123456
             assert.equal((new BN('2000610580000123456').add(balanceBefore)).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 123456 more now.");
         });
+    });
+
+    it('should ', async () => {
+
     });
 });
