@@ -82,7 +82,7 @@ contract SmartContractVerificator {
     // wallet which holds the reward for the verificators
     address payable public wallet;
 
-    modifier onlyOwner() {
+    modifier onlyOwner()  {
         require(msg.sender == smartContractOwner, "You are not the owner.");
         _;
     }
@@ -230,7 +230,7 @@ contract SmartContractVerificator {
             // there is no majority, wait for the next reviewer
             return;
         }
-        // evaluate the programmer which got the rating as swarm intelligence
+        // evaluate the programmer reviewer which got the rating as swarm intelligence
         for (uint i = 0; i < reviewer.length; i++) {
             if (testReviewerRatingMapping[_smartContractTest][reviewer[i]] == swarm) {
                 programmerVerificator.addProgrammerPoints(reviewer[i], 1);
