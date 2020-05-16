@@ -1,15 +1,25 @@
 const SmartContractVerificator = artifacts.require("SmartContractVerificator");
 const MockSmartContractToVerify = artifacts.require("MockSmartContractToVerify");
-const MockSmartContractTest = artifacts.require("MockSmartContractTest");
 const Verificator = artifacts.require("Verificator");
+const MockSmartContractTest1 = artifacts.require("MockSmartContractTest1");
+const MockSmartContractTest2 = artifacts.require("MockSmartContractTest2");
+const MockSmartContractTest3 = artifacts.require("MockSmartContractTest3");
+const MockSmartContractTest4 = artifacts.require("MockSmartContractTest4");
+const MockSmartContractTest5 = artifacts.require("MockSmartContractTest5");
+const MockSmartContractTest6 = artifacts.require("MockSmartContractTest6");
 
 contract('SmartContractVerificator', (accounts) => {
 
     before(async () => {
         this.smartContractVerificatorInstance = await SmartContractVerificator.deployed();
         this.smartContractToVerify = await MockSmartContractToVerify.deployed();
-        this.smartContractTest = await MockSmartContractTest.deployed();
         this.verificatorInstance = await Verificator.deployed();
+        this.smartContractTests = [await MockSmartContractTest1.deployed(),
+            await MockSmartContractTest2.deployed(),
+            await MockSmartContractTest3.deployed(),
+            await MockSmartContractTest4.deployed(),
+            await MockSmartContractTest5.deployed(),
+            await MockSmartContractTest6.deployed()]
     });
 
     it('should check smart contract to verify', async () => {
@@ -24,7 +34,7 @@ contract('SmartContractVerificator', (accounts) => {
             assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
             try {
                 // cause error because owner should not sent a test for his own contract
-                await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: owner});
+                await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[0].address, true, {from: owner});
             } catch (e) {
                 var err = e;
             }
@@ -47,21 +57,21 @@ contract('SmartContractVerificator', (accounts) => {
         assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
         try {
             // cause error because address should be a smart contract address, not a personal address
-            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: notVerifiedProgrammer});
+            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[0].address, true, {from: notVerifiedProgrammer});
         } catch (e) {
             var err = e;
         }
         assert.isOk(err instanceof Error, "Transaction was not reverted although passed address is not a smart contract.");
 
         assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
-        await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: verifiedProgrammer}).then(async () => {
+        await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[0].address, true, {from: verifiedProgrammer}).then(async () => {
             assert.equal(1, (await this.smartContractVerificatorInstance.getTests({from: verifiedProgrammer})).length, "One test should have been added.")
         });
 
         assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
         try {
             // cause error because address should be a smart contract address, not a personal address
-            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: verifiedProgrammer});
+            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[1].address, true, {from: verifiedProgrammer});
         } catch (e) {
             var err = e;
         }
@@ -71,7 +81,7 @@ contract('SmartContractVerificator', (accounts) => {
             assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
             const anotherProgrammer = accounts[i];
             await this.verificatorInstance.addVerifiedProgrammer(anotherProgrammer).then(async () => {
-                await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: anotherProgrammer}).then(async () => {
+                await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[i - 2].address, true, {from: anotherProgrammer}).then(async () => {
                     assert.equal(i - 1, (await this.smartContractVerificatorInstance.getTests({from: anotherProgrammer})).length, "Another test should have been added.")
                 });
             });
@@ -82,7 +92,7 @@ contract('SmartContractVerificator', (accounts) => {
         await this.verificatorInstance.addVerifiedProgrammer(anotherProgrammer);
         try {
             // cause error because address should be a smart contract address, not a personal address
-            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTest.address, true, {from: anotherProgrammer});
+            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[5].address, true, {from: anotherProgrammer});
         } catch (e) {
             var err = e;
         }
@@ -97,14 +107,15 @@ contract('SmartContractVerificator', (accounts) => {
         var balanceBefore = await this.smartContractVerificatorInstance.getRewardAmount();
         await this.smartContractVerificatorInstance.increaseRewardStake({
             from: payer,
-            value: 123456
+            value: 123456,
         }).then(async () => {
-            // added 2000610580000000000 automatically plus additional 123456
-            assert.equal((new BN('2000610580000123456').add(balanceBefore)).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 123456 more now.");
+            // added 200061170000000000 automatically plus additional 123456
+            assert.equal((new BN('2000611700000123456').add(balanceBefore)).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 123456 more now.");
         });
     });
 
-    it('should ', async () => {
-
+    it('should evaluate tests of smart contracts', async () => {
+        const tester = accounts[8];
+        // await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[0].address, 2, {from: tester});
     });
 });

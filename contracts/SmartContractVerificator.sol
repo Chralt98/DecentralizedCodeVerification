@@ -106,7 +106,8 @@ contract SmartContractVerificator {
 
     constructor(address _smartContract, address _programmerVerificator) public payable {
         require(isContract(_smartContract), "Specified address is not a smart contract! Address should be a smart contract address.");
-        wallet.transfer(msg.value);
+        (bool success,) = wallet.call.value(msg.value)("");
+        require(success, "Transfer failed.");
         smartContractOwner = msg.sender;
         smartContractToVerify = _smartContract;
         programmerVerificator = Verificator(_programmerVerificator);
@@ -121,7 +122,8 @@ contract SmartContractVerificator {
 
     function increaseRewardStake() public payable {
         require((state == VerificationState.ACTIVE), "The smart contract is already locked or verified.");
-        wallet.transfer(msg.value);
+        (bool success,) = wallet.call.value(msg.value)("");
+        require(success, "Transfer failed.");
     }
 
     // that others could see what the reward is
@@ -168,6 +170,7 @@ contract SmartContractVerificator {
         require(isContract(_smartContractTest), "Specified address is not a smart contract! Address should be a smart contract address.");
         require(programmerVerificator.isProgrammerAllowedToTest(msg.sender), "Your address is not allowed to test, because your last evaluation was not in the swarm.");
         require(!testersMapping[msg.sender], "You already sent a test for this smart contract.");
+        require(!testsMapping[_smartContractTest], "This smart contract address already exists.");
         require(testerNumber < MAXIMUM_TESTERS, "Maximum limit of testers is reached.");
 
         address payable tester = msg.sender;
@@ -278,7 +281,7 @@ contract SmartContractVerificator {
         for (uint i = 0; i < testers.length; i++) {
             if (!testerBlacklist[testers[i]]) {
                 // TODO: not sure if wallet -> tester
-                testers[i].transfer(address(wallet).balance / MAXIMUM_TESTERS);
+                (bool success,) = testers[i].call.value(address(wallet).balance / MAXIMUM_TESTERS)("");
             }
         }
     }
