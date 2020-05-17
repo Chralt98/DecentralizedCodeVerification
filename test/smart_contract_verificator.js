@@ -112,78 +112,30 @@ contract('SmartContractVerificator', (accounts) => {
         await this.verificatorInstance.addSmartContractVerificator(this.smartContractVerificatorInstance.address);
         // tester accounts[8] to accounts[108]
         // rating only this.smartContractTests[0]
-        var zeros = 0;
-        var zeroReviewer = [];
-        var ones = 0;
-        var oneReviewer = [];
-        var twos = 0;
-        var twoReviewer = [];
-        for (let i = 8; i < 108; i++) {
-            let rand = Math.floor((Math.random() * 2));
-            switch (rand) {
-                case 0:
-                    zeros++;
-                    zeroReviewer.push(accounts[i]);
-                    break;
-                case 1:
-                    ones++;
-                    oneReviewer.push(accounts[i]);
-                    break;
-                case 2:
-                    twos++;
-                    twoReviewer.push(accounts[i]);
-                    break;
-            }
+        let zeroReviewer = [];
+        let oneReviewer = [];
+        let twoReviewer = [];
+        for (let i = 8; i < 109; i++) {
             await this.verificatorInstance.addVerifiedProgrammer(accounts[i]);
-            await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[0].address, rand, {from: accounts[i]});
+            if (i < 80) {
+                zeroReviewer.push(accounts[i]);
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[0].address, 0, {from: accounts[i]});
+            } else if (80 >= i && i < 90) {
+                oneReviewer.push(accounts[i]);
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[0].address, 1, {from: accounts[i]});
+            } else if (i >= 90) {
+                twoReviewer.push(accounts[i]);
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[0].address, 2, {from: accounts[i]});
+            }
         }
-        let swarm = -1;
-        if (zeros > ones && zeros > twos) {
-            swarm = 0;
-        } else if (ones > zeros && ones > twos) {
-            swarm = 1;
-        } else if (twos > zeros && twos > ones) {
-            swarm = 2;
-        } else {
-            // there is no majority, wait for the next reviewer
-            console.log('no majority');
+        for (const programmer of zeroReviewer) {
+            assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have rating INITIAL_START_POINTS (10) plus 1 for the swarm rating of 0.");
         }
-        switch (swarm) {
-            case 0:
-                for (const programmer of zeroReviewer) {
-                    assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should've rating INITIAL_START_POINTS (10) plus 1 for the swarm rating of 0.");
-                }
-                for (const programmer of oneReviewer) {
-                    assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
-                }
-                for (const programmer of twoReviewer) {
-                    assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
-                }
-                break;
-            case 1:
-                for (const programmer of zeroReviewer) {
-                    assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
-                }
-                for (const programmer of oneReviewer) {
-                    assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should've rating INITIAL_START_POINTS (10) plus 1 for the swarm rating of 1.");
-                }
-                for (const programmer of twoReviewer) {
-                    assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
-                }
-                break;
-            case 2:
-                for (const programmer of zeroReviewer) {
-                    assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
-                }
-                for (const programmer of oneReviewer) {
-                    assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
-                }
-                for (const programmer of twoReviewer) {
-                    assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should've rating INITIAL_START_POINTS (10) plus 1 for the swarm rating of 2.");
-                }
-                break;
-            default:
-                console.log("no majority!");
+        for (const programmer of oneReviewer) {
+            assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
+        }
+        for (const programmer of twoReviewer) {
+            assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
         }
     });
 });
