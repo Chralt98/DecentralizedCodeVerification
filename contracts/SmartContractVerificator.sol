@@ -4,7 +4,7 @@ import "./SafeMath.sol";
 import "./Verificator.sol";
 
 // smart verified programmers check smart contract code for semantic weaknesses, errors and bugs and they will test it (write a test smart contract for that)
-// let the registered programmers with the 50% best ratings get the reward stored in the wallet
+// let the registered programmers with the 50% best ratings get the reward stored in smart contract
 // each registered programmer can call if the smart contract is accepted
 // owner can not change the smart contract, there will be tests only written for this version and semantic comments
 // the reward will be distributed always for the tests and comments and semantic reviews
@@ -79,9 +79,6 @@ contract SmartContractVerificator {
     // owner is the creator of the to verified smart contract
     address public smartContractToVerify;
 
-    // wallet which holds the reward for the verificators
-    address payable public wallet;
-
     modifier onlyOwner()  {
         require(msg.sender == smartContractOwner, "You are not the owner.");
         _;
@@ -106,8 +103,6 @@ contract SmartContractVerificator {
 
     constructor(address _smartContract, address _programmerVerificator) public payable {
         require(isContract(_smartContract), "Specified address is not a smart contract! Address should be a smart contract address.");
-        (bool success,) = wallet.call.value(msg.value)("");
-        require(success, "Transfer failed.");
         smartContractOwner = msg.sender;
         smartContractToVerify = _smartContract;
         programmerVerificator = Verificator(_programmerVerificator);
@@ -122,17 +117,10 @@ contract SmartContractVerificator {
 
     function increaseRewardStake() public payable {
         require((state == VerificationState.ACTIVE), "The smart contract is already locked or verified.");
-        (bool success,) = wallet.call.value(msg.value)("");
-        require(success, "Transfer failed.");
-    }
-
-    // that others could see what the reward is
-    function getRewardWalletAddress() public view returns (address) {
-        return address(wallet);
     }
 
     function getRewardAmount() public view returns (uint) {
-        return address(wallet).balance;
+        return address(this).balance;
     }
 
     function getSmartContractToVerify() public view returns (address) {
@@ -281,7 +269,7 @@ contract SmartContractVerificator {
         for (uint i = 0; i < testers.length; i++) {
             if (!testerBlacklist[testers[i]]) {
                 // TODO: not sure if wallet -> tester
-                (bool success,) = testers[i].call.value(address(wallet).balance / MAXIMUM_TESTERS)("");
+                (bool success,) = testers[i].call.value(address(this).balance / MAXIMUM_TESTERS)("");
             }
         }
     }

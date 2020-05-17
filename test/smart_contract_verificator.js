@@ -30,16 +30,15 @@ contract('SmartContractVerificator', (accounts) => {
 
     it('should send smart contract test', async () => {
         const owner = accounts[0];
-        await this.verificatorInstance.addVerifiedProgrammer(owner).then(async () => {
-            assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
-            try {
-                // cause error because owner should not sent a test for his own contract
-                await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[0].address, true, {from: owner});
-            } catch (e) {
-                var err = e;
-            }
-            assert.isOk(err instanceof Error, "Transaction was not reverted although owner should not sent a test.");
-        });
+        await this.verificatorInstance.addVerifiedProgrammer(owner);
+        assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
+        try {
+            // cause error because owner should not sent a test for his own contract
+            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[0].address, true, {from: owner});
+        } catch (e) {
+            var err = e;
+        }
+        assert.isOk(err instanceof Error, "Transaction was not reverted although owner should not sent a test.");
 
         const verifiedProgrammer = accounts[1];
         await this.verificatorInstance.addVerifiedProgrammer(verifiedProgrammer);
@@ -64,9 +63,9 @@ contract('SmartContractVerificator', (accounts) => {
         assert.isOk(err instanceof Error, "Transaction was not reverted although passed address is not a smart contract.");
 
         assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
-        await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[0].address, true, {from: verifiedProgrammer}).then(async () => {
-            assert.equal(1, (await this.smartContractVerificatorInstance.getTests({from: verifiedProgrammer})).length, "One test should have been added.")
-        });
+        await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[0].address, true, {from: verifiedProgrammer});
+        assert.equal(1, (await this.smartContractVerificatorInstance.getTests({from: verifiedProgrammer})).length, "One test should have been added.")
+
 
         assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
         try {
@@ -80,11 +79,9 @@ contract('SmartContractVerificator', (accounts) => {
         for (let i = 3; i < 7; i++) {
             assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
             const anotherProgrammer = accounts[i];
-            await this.verificatorInstance.addVerifiedProgrammer(anotherProgrammer).then(async () => {
-                await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[i - 2].address, true, {from: anotherProgrammer}).then(async () => {
-                    assert.equal(i - 1, (await this.smartContractVerificatorInstance.getTests({from: anotherProgrammer})).length, "Another test should have been added.")
-                });
-            });
+            await this.verificatorInstance.addVerifiedProgrammer(anotherProgrammer);
+            await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[i - 2].address, true, {from: anotherProgrammer});
+            assert.equal(i - 1, (await this.smartContractVerificatorInstance.getTests({from: anotherProgrammer})).length, "Another test should have been added.")
         }
 
         const anotherProgrammer = accounts[7];
@@ -101,17 +98,14 @@ contract('SmartContractVerificator', (accounts) => {
     });
 
     it('should increase reward stake', async () => {
-        // test reward stake wallet
+        // test reward stake
         const payer = accounts[1];
-        var BN = web3.utils.BN;
-        var balanceBefore = await this.smartContractVerificatorInstance.getRewardAmount();
-        await this.smartContractVerificatorInstance.increaseRewardStake({
-            from: payer,
-            value: 123456,
-        }).then(async () => {
-            // added 200061170000000000 automatically plus additional 123456
-            assert.equal((new BN('2000611700000123456').add(balanceBefore)).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 123456 more now.");
-        });
+        let BN = web3.utils.BN;
+        let balanceBefore = await this.smartContractVerificatorInstance.getRewardAmount();
+        await this.smartContractVerificatorInstance.increaseRewardStake({from: payer, value: 123456});
+        assert.equal((new BN('123456').add(balanceBefore)).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 123456 more now.");
+        await this.smartContractVerificatorInstance.increaseRewardStake({from: payer, value: 654321});
+        assert.equal((new BN('777777')).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 654321 + 123456 = 777777.");
     });
 
     it('should evaluate tests of smart contracts', async () => {
@@ -140,9 +134,8 @@ contract('SmartContractVerificator', (accounts) => {
                     twoReviewer.push(accounts[i]);
                     break;
             }
-            await this.verificatorInstance.addVerifiedProgrammer(accounts[i]).then(async () => {
-                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[0].address, rand, {from: accounts[i]});
-            });
+            await this.verificatorInstance.addVerifiedProgrammer(accounts[i]);
+            await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[0].address, rand, {from: accounts[i]});
         }
         let swarm = -1;
         if (zeros > ones && zeros > twos) {
@@ -158,7 +151,7 @@ contract('SmartContractVerificator', (accounts) => {
         switch (swarm) {
             case 0:
                 for (const programmer of zeroReviewer) {
-                    assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should've rating INITIAL_START_POINTS (10) plus 1 for the swarm rating.");
+                    assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should've rating INITIAL_START_POINTS (10) plus 1 for the swarm rating of 0.");
                 }
                 for (const programmer of oneReviewer) {
                     assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
@@ -172,7 +165,7 @@ contract('SmartContractVerificator', (accounts) => {
                     assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
                 }
                 for (const programmer of oneReviewer) {
-                    assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should've rating INITIAL_START_POINTS (10) plus 1 for the swarm rating.");
+                    assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should've rating INITIAL_START_POINTS (10) plus 1 for the swarm rating of 1.");
                 }
                 for (const programmer of twoReviewer) {
                     assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
@@ -186,7 +179,7 @@ contract('SmartContractVerificator', (accounts) => {
                     assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
                 }
                 for (const programmer of twoReviewer) {
-                    assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should've rating INITIAL_START_POINTS (10) plus 1 for the swarm rating.");
+                    assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should've rating INITIAL_START_POINTS (10) plus 1 for the swarm rating of 2.");
                 }
                 break;
             default:
