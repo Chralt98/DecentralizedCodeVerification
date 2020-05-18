@@ -54,6 +54,7 @@ contract SmartContractVerificator {
 
     address[] public tests;
     mapping(address => bool) testsMapping;
+    mapping(address => bool) reviewerExistsMapping;
 
     address[] public swarmLevelTwoTests;
     uint swarmLevelTwoTestIndex = 0;
@@ -184,7 +185,10 @@ contract SmartContractVerificator {
 
         testReviewerHasRatedMapping[_smartContractTestToEvaluate][msg.sender] = true;
         testReviewerRatingMapping[_smartContractTestToEvaluate][msg.sender] = _rating;
-        reviewer.push(msg.sender);
+
+        if (!reviewerExistsMapping[msg.sender]) reviewer.push(msg.sender);
+        reviewerExistsMapping[msg.sender] = true;
+
         if (!testRatingMapping[_smartContractTestToEvaluate].exists) testRatingMapping[_smartContractTestToEvaluate] = Rating(true, 0, 0, 0);
         if (_rating == 0) testRatingMapping[_smartContractTestToEvaluate].zeroPoints++;
         if (_rating == 1) testRatingMapping[_smartContractTestToEvaluate].onePoints++;

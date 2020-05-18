@@ -112,30 +112,44 @@ contract('SmartContractVerificator', (accounts) => {
         await this.verificatorInstance.addSmartContractVerificator(this.smartContractVerificatorInstance.address);
         // tester accounts[8] to accounts[108]
         // rating only this.smartContractTests[0]
-        let zeroReviewer = [];
-        let oneReviewer = [];
-        let twoReviewer = [];
-        for (let i = 8; i < 109; i++) {
+        for (let i = 8; i < 108; i++) {
             await this.verificatorInstance.addVerifiedProgrammer(accounts[i]);
-            if (i < 80) {
-                zeroReviewer.push(accounts[i]);
+            if (i < 28) {
                 await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[0].address, 0, {from: accounts[i]});
-            } else if (80 >= i && i < 90) {
-                oneReviewer.push(accounts[i]);
+            } else if (28 <= i && i < 80) {
                 await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[0].address, 1, {from: accounts[i]});
-            } else if (i >= 90) {
-                twoReviewer.push(accounts[i]);
+            } else if (i >= 80) {
                 await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[0].address, 2, {from: accounts[i]});
             }
         }
-        for (const programmer of zeroReviewer) {
-            assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have rating INITIAL_START_POINTS (10) plus 1 for the swarm rating of 0.");
+        for (let i = 8; i < 108; i++) {
+            if (i < 28) {
+                assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(accounts[i])).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
+            } else if (28 <= i && i < 80) {
+                assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(accounts[i])).toNumber(), "Programmer should have rating INITIAL_START_POINTS (10) plus 1 for the swarm rating of 1.");
+            } else if (i >= 80) {
+                assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(accounts[i])).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
+            }
         }
-        for (const programmer of oneReviewer) {
-            assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
+
+        for (let i = 8; i < 108; i++) {
+            if (i < 80) {
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[1].address, 0, {from: accounts[i]});
+            } else if (80 <= i && i < 85) {
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[1].address, 1, {from: accounts[i]});
+            } else if (i >= 85) {
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[1].address, 2, {from: accounts[i]});
+            }
         }
-        for (const programmer of twoReviewer) {
-            assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(programmer)).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
+        
+        for (let i = 8; i < 108; i++) {
+            if (i < 28) {
+                assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(accounts[i])).toNumber(), "Programmer should have only INITIAL_START_POINTS (10) plus 1 for the swarm rating of 0.");
+            } else if (28 <= i && i < 80) {
+                assert.equal(12, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(accounts[i])).toNumber(), "Programmer should have rating INITIAL_START_POINTS (10) plus 1 for the swarm rating of 1 plus 1 for the swarm rating of 0.");
+            } else if (80 <= i) {
+                assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(accounts[i])).toNumber(), "Programmer should have same points as above.");
+            }
         }
     });
 });
