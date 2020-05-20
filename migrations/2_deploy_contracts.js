@@ -8,6 +8,7 @@ const MockSmartContractTest3 = artifacts.require("MockSmartContractTest3");
 const MockSmartContractTest4 = artifacts.require("MockSmartContractTest4");
 const MockSmartContractTest5 = artifacts.require("MockSmartContractTest5");
 const MockSmartContractTest6 = artifacts.require("MockSmartContractTest6");
+const MockSmartContractTest7 = artifacts.require("MockSmartContractTest7");
 
 module.exports = function (deployer) {
     deployer.deploy(SafeMath);
@@ -24,4 +25,5 @@ module.exports = function (deployer) {
     deployer.deploy(MockSmartContractTest4);
     deployer.deploy(MockSmartContractTest5);
     deployer.deploy(MockSmartContractTest6);
+    deployer.deploy(MockSmartContractTest7);
 };

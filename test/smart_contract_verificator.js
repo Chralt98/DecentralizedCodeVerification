@@ -7,6 +7,7 @@ const MockSmartContractTest3 = artifacts.require("MockSmartContractTest3");
 const MockSmartContractTest4 = artifacts.require("MockSmartContractTest4");
 const MockSmartContractTest5 = artifacts.require("MockSmartContractTest5");
 const MockSmartContractTest6 = artifacts.require("MockSmartContractTest6");
+const MockSmartContractTest7 = artifacts.require("MockSmartContractTest7");
 
 contract('SmartContractVerificator', (accounts) => {
 
@@ -19,7 +20,8 @@ contract('SmartContractVerificator', (accounts) => {
             await MockSmartContractTest3.deployed(),
             await MockSmartContractTest4.deployed(),
             await MockSmartContractTest5.deployed(),
-            await MockSmartContractTest6.deployed()]
+            await MockSmartContractTest6.deployed(),
+            await MockSmartContractTest7.deployed()]
     });
 
     it('should check smart contract to verify', async () => {
@@ -64,7 +66,7 @@ contract('SmartContractVerificator', (accounts) => {
 
         assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
         await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[0].address, true, {from: verifiedProgrammer});
-        assert.equal(1, (await this.smartContractVerificatorInstance.getTests({from: verifiedProgrammer})).length, "One test should have been added.")
+        assert.equal(1, (await this.smartContractVerificatorInstance.getTests({from: verifiedProgrammer})).length, "One test should have been added.");
 
 
         assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
@@ -104,15 +106,15 @@ contract('SmartContractVerificator', (accounts) => {
         let balanceBefore = await this.smartContractVerificatorInstance.getRewardAmount();
         await this.smartContractVerificatorInstance.increaseRewardStake({from: payer, value: 123456});
         assert.equal((new BN('123456').add(balanceBefore)).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 123456 more now.");
-        await this.smartContractVerificatorInstance.increaseRewardStake({from: payer, value: 654321});
-        assert.equal((new BN('777777')).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 654321 + 123456 = 777777.");
+        await this.smartContractVerificatorInstance.increaseRewardStake({from: payer, value: 654319});
+        assert.equal((new BN('777775')).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 654321 + 123456 = 777777.");
     });
 
     it('should evaluate tests of smart contracts', async () => {
         await this.verificatorInstance.addSmartContractVerificator(this.smartContractVerificatorInstance.address);
         // tester accounts[8] to accounts[108]
         // rating only this.smartContractTests[0]
-        for (let i = 8; i < 108; i++) {
+        for (let i = 10; i < 110; i++) {
             await this.verificatorInstance.addVerifiedProgrammer(accounts[i]);
             if (i < 28) {
                 await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[0].address, 0, {from: accounts[i]});
@@ -122,7 +124,7 @@ contract('SmartContractVerificator', (accounts) => {
                 await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[0].address, 2, {from: accounts[i]});
             }
         }
-        for (let i = 8; i < 108; i++) {
+        for (let i = 10; i < 110; i++) {
             if (i < 28) {
                 assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(accounts[i])).toNumber(), "Programmer should have only INITIAL_START_POINTS (10).");
             } else if (28 <= i && i < 80) {
@@ -132,7 +134,7 @@ contract('SmartContractVerificator', (accounts) => {
             }
         }
 
-        for (let i = 8; i < 108; i++) {
+        for (let i = 10; i < 110; i++) {
             if (i < 80) {
                 await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[1].address, 0, {from: accounts[i]});
             } else if (80 <= i && i < 85) {
@@ -141,8 +143,8 @@ contract('SmartContractVerificator', (accounts) => {
                 await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[1].address, 2, {from: accounts[i]});
             }
         }
-        
-        for (let i = 8; i < 108; i++) {
+
+        for (let i = 10; i < 110; i++) {
             if (i < 28) {
                 assert.equal(11, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(accounts[i])).toNumber(), "Programmer should have only INITIAL_START_POINTS (10) plus 1 for the swarm rating of 0.");
             } else if (28 <= i && i < 80) {
@@ -150,6 +152,72 @@ contract('SmartContractVerificator', (accounts) => {
             } else if (80 <= i) {
                 assert.equal(10, (await this.verificatorInstance.getVerifiedProgrammerPoints.call(accounts[i])).toNumber(), "Programmer should have same points as above.");
             }
+        }
+
+        // should be enough space to push another two tests
+        await this.verificatorInstance.addVerifiedProgrammer(accounts[8]);
+        assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
+        await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[5].address, true, {from: accounts[8]});
+
+        await this.verificatorInstance.addVerifiedProgrammer(accounts[9]);
+        assert.isOk(await this.smartContractVerificatorInstance.isTesterSpace(), "Tester space shouldn't be full.");
+        await this.smartContractVerificatorInstance.sendSmartContractTest(this.smartContractTests[6].address, true, {from: accounts[9]});
+    });
+
+    it('should distribute reward to the 5 level 2 swarm testers', async () => {
+        // accounts 1, 3, 4, 5, 6 are the writers of the tests 2, 3, 4, 5, 6
+        let balanceAccount1Before = web3.eth.getBalance(accounts[1]);
+        let balanceAccount3Before = web3.eth.getBalance(accounts[3]);
+        let balanceAccount4Before = web3.eth.getBalance(accounts[4]);
+        let balanceAccount5Before = web3.eth.getBalance(accounts[5]);
+        let balanceAccount6Before = web3.eth.getBalance(accounts[6]);
+        let rewardAmount = parseInt((await this.smartContractVerificatorInstance.getRewardAmount()).toString());
+        for (let i = 10; i < 108; i++) {
+            if (i < 10) {
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[2].address, 0, {from: accounts[i]});
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[3].address, 0, {from: accounts[i]});
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[4].address, 0, {from: accounts[i]});
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[5].address, 0, {from: accounts[i]});
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[6].address, 0, {from: accounts[i]});
+            } else if (10 <= i && i < 28) {
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[2].address, 1, {from: accounts[i]});
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[3].address, 1, {from: accounts[i]});
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[4].address, 1, {from: accounts[i]});
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[5].address, 1, {from: accounts[i]});
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[6].address, 1, {from: accounts[i]});
+            } else if (i >= 28) {
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[2].address, 2, {from: accounts[i]});
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[3].address, 2, {from: accounts[i]});
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[4].address, 2, {from: accounts[i]});
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[5].address, 2, {from: accounts[i]});
+                await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[6].address, 2, {from: accounts[i]});
+            }
+        }
+
+        let balanceAccount1 = web3.eth.getBalance(accounts[1]);
+        assert.ok(balanceAccount1Before < balanceAccount1, "Balance should be higher because of the reward");
+        let balanceAccount3 = web3.eth.getBalance(accounts[3]);
+        assert.ok(balanceAccount3Before < balanceAccount3, "Balance should be higher because of the reward");
+        let balanceAccount4 = web3.eth.getBalance(accounts[4]);
+        assert.ok(balanceAccount4Before < balanceAccount4, "Balance should be higher because of the reward");
+        let balanceAccount5 = web3.eth.getBalance(accounts[5]);
+        assert.ok(balanceAccount5Before < balanceAccount5, "Balance should be higher because of the reward");
+        let balanceAccount6 = web3.eth.getBalance(accounts[6]);
+        assert.ok(balanceAccount6Before < balanceAccount6, "Balance should be higher because of the reward");
+        if (rewardAmount % 5 === 0) {
+            let fifthReward = rewardAmount / 5;
+            assert.equal(balanceAccount1Before + fifthReward, balanceAccount1, "Balance should be the fifth reward higher.");
+            assert.equal(balanceAccount3Before + fifthReward, balanceAccount3, "Balance should be the fifth reward higher.");
+            assert.equal(balanceAccount4Before + fifthReward, balanceAccount4, "Balance should be the fifth reward higher.");
+            assert.equal(balanceAccount5Before + fifthReward, balanceAccount5, "Balance should be the fifth reward higher.");
+            assert.equal(balanceAccount6Before + fifthReward, balanceAccount6, "Balance should be the fifth reward higher.");
+        } else {
+            console.log("Can not be divided by 5.");
+            console.log(balanceAccount1Before.toString() + " , AFTER: " + balanceAccount1.toString());
+            console.log(balanceAccount3Before.toString() + " , AFTER: " + balanceAccount3.toString());
+            console.log(balanceAccount4Before.toString() + " , AFTER: " + balanceAccount4.toString());
+            console.log(balanceAccount5Before.toString() + " , AFTER: " + balanceAccount5.toString());
+            console.log(balanceAccount6Before.toString() + " , AFTER: " + balanceAccount6.toString());
         }
     });
 });
