@@ -42,6 +42,9 @@ contract SmartContractVerificator {
 
     event TesterJoins();
     event TesterLeaves();
+    event TesterRewarded(
+        address _tester
+    );
 
     // first is verified programmer and second is if the smart contract is accepted
     // 60% of the verified programmers should accept the code to get verified
@@ -104,6 +107,7 @@ contract SmartContractVerificator {
 
     constructor(address _smartContract, address _programmerVerificator) public payable {
         require(isContract(_smartContract), "Specified address is not a smart contract! Address should be a smart contract address.");
+        require((msg.value % MAXIMUM_TESTERS == 0), "Should be dividable by 5 (MAXIMUM_TESTERS).");
         smartContractOwner = msg.sender;
         smartContractToVerify = _smartContract;
         programmerVerificator = Verificator(_programmerVerificator);
@@ -118,6 +122,7 @@ contract SmartContractVerificator {
 
     function increaseRewardStake() public payable {
         require((state == VerificationState.ACTIVE), "The smart contract is already locked or verified.");
+        require((msg.value % MAXIMUM_TESTERS == 0), "Should be dividable by 5 (MAXIMUM_TESTERS).");
     }
 
     function getRewardAmount() public view returns (uint) {
@@ -274,6 +279,7 @@ contract SmartContractVerificator {
             if (!testerBlacklist[testers[i]]) {
                 // TODO: not sure if wallet -> tester
                 (bool success,) = testers[i].call.value(address(this).balance / MAXIMUM_TESTERS)("");
+                if (success) emit TesterRewarded(testers[i]);
             }
         }
     }

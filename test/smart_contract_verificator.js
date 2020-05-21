@@ -104,10 +104,10 @@ contract('SmartContractVerificator', (accounts) => {
         const payer = accounts[1];
         let BN = web3.utils.BN;
         let balanceBefore = await this.smartContractVerificatorInstance.getRewardAmount();
-        await this.smartContractVerificatorInstance.increaseRewardStake({from: payer, value: 123456});
-        assert.equal((new BN('123456').add(balanceBefore)).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 123456 more now.");
-        await this.smartContractVerificatorInstance.increaseRewardStake({from: payer, value: 654319});
-        assert.equal((new BN('777775')).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 654321 + 123456 = 777777.");
+        await this.smartContractVerificatorInstance.increaseRewardStake({from: payer, value: 123456789100});
+        assert.equal((new BN('123456789100').add(balanceBefore)).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 123456789100 more now.");
+        await this.smartContractVerificatorInstance.increaseRewardStake({from: payer, value: 109876543210});
+        assert.equal((new BN('233333332310')).toString(), (await this.smartContractVerificatorInstance.getRewardAmount()).toString(), "Should have 123456789100 + 109876543210 = 233333332310.");
     });
 
     it('should evaluate tests of smart contracts', async () => {
@@ -165,14 +165,14 @@ contract('SmartContractVerificator', (accounts) => {
     });
 
     it('should distribute reward to the 5 level 2 swarm testers', async () => {
-        // accounts 1, 3, 4, 5, 6 are the writers of the tests 2, 3, 4, 5, 6
-        let balanceAccount1Before = web3.eth.getBalance(accounts[1]);
-        let balanceAccount3Before = web3.eth.getBalance(accounts[3]);
-        let balanceAccount4Before = web3.eth.getBalance(accounts[4]);
-        let balanceAccount5Before = web3.eth.getBalance(accounts[5]);
-        let balanceAccount6Before = web3.eth.getBalance(accounts[6]);
+        // accounts 8, 9, 4, 5, 6 are the writers of the tests
+        let balanceAccount8Before = await web3.eth.getBalance(accounts[8]);
+        let balanceAccount9Before = await web3.eth.getBalance(accounts[9]);
+        let balanceAccount4Before = await web3.eth.getBalance(accounts[4]);
+        let balanceAccount5Before = await web3.eth.getBalance(accounts[5]);
+        let balanceAccount6Before = await web3.eth.getBalance(accounts[6]);
         let rewardAmount = parseInt((await this.smartContractVerificatorInstance.getRewardAmount()).toString());
-        for (let i = 10; i < 108; i++) {
+        for (let i = 10; i < 110; i++) {
             if (i < 10) {
                 await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[2].address, 0, {from: accounts[i]});
                 await this.smartContractVerificatorInstance.evaluateTestOfSmartContract(this.smartContractTests[3].address, 0, {from: accounts[i]});
@@ -194,30 +194,30 @@ contract('SmartContractVerificator', (accounts) => {
             }
         }
 
-        let balanceAccount1 = web3.eth.getBalance(accounts[1]);
-        assert.ok(balanceAccount1Before < balanceAccount1, "Balance should be higher because of the reward");
-        let balanceAccount3 = web3.eth.getBalance(accounts[3]);
-        assert.ok(balanceAccount3Before < balanceAccount3, "Balance should be higher because of the reward");
-        let balanceAccount4 = web3.eth.getBalance(accounts[4]);
-        assert.ok(balanceAccount4Before < balanceAccount4, "Balance should be higher because of the reward");
-        let balanceAccount5 = web3.eth.getBalance(accounts[5]);
-        assert.ok(balanceAccount5Before < balanceAccount5, "Balance should be higher because of the reward");
-        let balanceAccount6 = web3.eth.getBalance(accounts[6]);
-        assert.ok(balanceAccount6Before < balanceAccount6, "Balance should be higher because of the reward");
+        let balanceAccount8 = await web3.eth.getBalance(accounts[8]);
+        let balanceAccount9 = await web3.eth.getBalance(accounts[9]);
+        let balanceAccount4 = await web3.eth.getBalance(accounts[4]);
+        let balanceAccount5 = await web3.eth.getBalance(accounts[5]);
+        let balanceAccount6 = await web3.eth.getBalance(accounts[6]);
+        console.log(balanceAccount8Before.toString() + " , AFTER: " + balanceAccount8.toString());
+        console.log(balanceAccount9Before.toString() + " , AFTER: " + balanceAccount9.toString());
+        console.log(balanceAccount4Before.toString() + " , AFTER: " + balanceAccount4.toString());
+        console.log(balanceAccount5Before.toString() + " , AFTER: " + balanceAccount5.toString());
+        console.log(balanceAccount6Before.toString() + " , AFTER: " + balanceAccount6.toString());
+        assert.ok(parseInt(balanceAccount8Before) < parseInt(balanceAccount8), "Balance should be higher because of the reward");
+        assert.ok(parseInt(balanceAccount9Before) < parseInt(balanceAccount9), "Balance should be higher because of the reward");
+        assert.ok(parseInt(balanceAccount4Before) < parseInt(balanceAccount4), "Balance should be higher because of the reward");
+        assert.ok(parseInt(balanceAccount5Before) < parseInt(balanceAccount5), "Balance should be higher because of the reward");
+        assert.ok(parseInt(balanceAccount6Before) < parseInt(balanceAccount6), "Balance should be higher because of the reward");
         if (rewardAmount % 5 === 0) {
             let fifthReward = rewardAmount / 5;
-            assert.equal(balanceAccount1Before + fifthReward, balanceAccount1, "Balance should be the fifth reward higher.");
-            assert.equal(balanceAccount3Before + fifthReward, balanceAccount3, "Balance should be the fifth reward higher.");
-            assert.equal(balanceAccount4Before + fifthReward, balanceAccount4, "Balance should be the fifth reward higher.");
-            assert.equal(balanceAccount5Before + fifthReward, balanceAccount5, "Balance should be the fifth reward higher.");
-            assert.equal(balanceAccount6Before + fifthReward, balanceAccount6, "Balance should be the fifth reward higher.");
+            assert.equal(parseInt(balanceAccount8Before) + parseInt(fifthReward), parseInt(balanceAccount8), "Balance should be the fifth reward higher.");
+            assert.equal(parseInt(balanceAccount9Before) + parseInt(fifthReward), parseInt(balanceAccount9), "Balance should be the fifth reward higher.");
+            assert.equal(parseInt(balanceAccount4Before) + parseInt(fifthReward), parseInt(balanceAccount4), "Balance should be the fifth reward higher.");
+            assert.equal(parseInt(balanceAccount5Before) + parseInt(fifthReward), parseInt(balanceAccount5), "Balance should be the fifth reward higher.");
+            assert.equal(parseInt(balanceAccount6Before) + parseInt(fifthReward), parseInt(balanceAccount6), "Balance should be the fifth reward higher.");
         } else {
             console.log("Can not be divided by 5.");
-            console.log(balanceAccount1Before.toString() + " , AFTER: " + balanceAccount1.toString());
-            console.log(balanceAccount3Before.toString() + " , AFTER: " + balanceAccount3.toString());
-            console.log(balanceAccount4Before.toString() + " , AFTER: " + balanceAccount4.toString());
-            console.log(balanceAccount5Before.toString() + " , AFTER: " + balanceAccount5.toString());
-            console.log(balanceAccount6Before.toString() + " , AFTER: " + balanceAccount6.toString());
         }
     });
 });
