@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <meta name="author" content="Chralt"/>
+
+    <meta content="yes" name="apple-mobile-web-app-capable">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+
+    <title>Chralt</title>
+    <!-- Custom styles for this template -->
+    <link href="../static/css/main.css" rel="stylesheet">
+    <link rel="shortcut icon" sizes="16x16 24x24 32x32 48x48 64x64" href="../static/images/favicon.ico">
+</head>
+<body>
+<nav class="navbar navbar-expand-sm fixed-top navbar-dark bg-dark">
+    <div class="container topnav">
+        <a class="navbar-brand" href="#">
+            <img src="../static/images/earth.png" width="32" height="32" class="d-inline-block align-top" alt="Icon">
+            Chralt
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
+                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item ">
+                    <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                </li>
+                <li class="nav-item ">
+                    <a class="nav-link" href="/blog">Blog</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="/about">About</a>
+                </li>
+                <li class="nav-item ">
+                    <a class="nav-link" href="/contact">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row h-100">
+        <div class="col-md-flex d-flex image-color-overlay h-100 flex-column flex-sm-row">
+            <div class="col-sm-6 d-flex align-items-center justify-content-center">
+                <div class="text-center">
+                    <hr class="hr-accent">
+                    <h3 class="display-4">Christopher Altmann</h3>
+                    <h4>programmer and finance enthusiast</h4>
+                    <hr class="hr-accent">
+                </div>
+            </div>
+            <div class="profile-picture col-sm-10 d-flex justify-content-center align-content-center">
+                <img src="../static/images/profile_image.png" width="320" height="320" class="img-responsive"
+                     alt="Picture of Me">
+            </div>
+        </div>
+    </div>
+</div>
+<div class="content-section bg-light d-flex justify-content-center">
+    <div class="container">
+        <div class="bg-light color-secondary">
+            <div class="row no-gutters">
+                <div class="col-md-4 display-none-before-medium">
+                    <picture>
+                        <img src="../static/images/earth.png"
+                             class="card-img" alt="About Me Picture">
+                    </picture>
+                </div>
+                <div class="col-md-1 display-none-before-medium"></div>
+                <div class="col-md-7">
+                    <div class="card-body">
+                        <h5 class="card-title">About Me</h5>
+                        <hr class="heading-hr hr-accent mb-4 d-inline-block mx-auto" style="width: 60px;">
+                        <p class="card-text">
+                            Hello world! My name is Christopher Altmann. The digital world has fascinated me since I was
+                            twelve.
+                            It all started with a fourth generation iPod Touch, which gave me access to the Internet. I
+                            always tried to bypass the game rules of mobile games and find ways to improve the operating
+                            system with a jailbreak. I come from a low-income family, but when I was younger I wasn't
+                            able to buy hardware for the latest games, but I still wanted to. This fact has taught me to
+                            save and get by with relatively little money.
+                        </p>
+                        <p class="card-text">
+                            Since I trained programming and learning at the Brandenburg University of Technology in
+                            Cottbus and as a working student in a part-time job, I had taken above-average time for my
+                            own personal development. I devour books on the subject of money, which in my opinion is not
+                            sufficiently taught. I am excited by the freedom that money makes possible. I realized that
+                            money can be learned and that what I have learned will probably save me from many mistakes
+                            in the future. That doesn't mean that I am wealthy at the time I write this, but I have
+                            a very good orientation
+                            on how I will do it. It is the small steps in everyday life that make a difference over the
+                            years.
+                        </p>
+                        <p class="card-text">
+                            Thanks to teaching at the university, like all my fellow students, I had to go through the
+                            hard math modules. The difficult tasks at the university taught me that I can do anything if
+                            I want to. I learned discipline and the importance of a healthy habit. The inner attitude
+                            (mindset) is the basic requirement to put things into action. Unconscious and conscious
+                            beliefs that are absorbed by the environment are the drivers of our actions. When I
+                            understood that, my worldview had changed radically. Affirmations help to convert every
+                            negative belief into positive. For example, negative beliefs about money do not promote
+                            wealth.
+                        </p>
+                        <p class="card-text">
+                            I am currently at the point that makes me think about the goal of a value-creating company.
+                            However, I notice that I should first master the rules of sales.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-center background-color">
+    <div class="row justify-content-center align-self-center text-center">
+        <div class="col-sm-12">
+            <h2 class="quote">Be strong in health, love, finance and experience!</h2>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <ul class="list-unstyled list-inline text-center social-icons-list">
+            <li class="list-inline-item">
+                <a href="https://github.com/Chralt98" target="_blank" class="btn-floating btn-dribbble mx-1">
+                    <img src="../static/images/github.svg" width="64" height="64" alt="GitHub Icon">
+                </a>
+            </li>
+        </ul>
+    </div>
+    <div class="footer-copyright text-center py-3">&copy; 2020 Chralt. All Rights Reserved.</div>
+</footer>
+
+<script src="../static/js/jquery-3.5.1.min.js"></script>
+<script src="../static/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

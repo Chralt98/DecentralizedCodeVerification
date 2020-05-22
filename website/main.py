@@ -6,13 +6,9 @@ from __future__ import division, print_function, unicode_literals
 
 from flask import Flask, render_template, request, redirect, \
     url_for, make_response, session, escape, jsonify, Response
-from functools import wraps
-import json
 # pip install pyopenssl
 # from OpenSSL import SSL
-import os
 import werkzeug
-import re
 
 """
 The flask server application to run the website.
@@ -46,6 +42,11 @@ def index(path):
     return redirect(url_for('home'))
 
 
+@app.route('/about', methods=['GET'])
+def about():
+    return render_template('about.html')
+
+
 @app.route('/home', methods=['POST', 'GET'])
 def home():
     # get the arguments of the url: request.args.get('name')
@@ -58,4 +59,4 @@ if __name__ == '__main__':
     # ssl_context=context
     # set debug to false if production
     # uses threaded if multiple clients request the website this python file will run multi threaded
-    app.run(port=1414, debug=True, threaded=True)
+    app.run(port=5000, debug=True, threaded=True)

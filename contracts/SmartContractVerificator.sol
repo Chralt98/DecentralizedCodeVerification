@@ -84,8 +84,6 @@ contract SmartContractVerificator {
     // owner is the creator of the to verified smart contract
     address public smartContractToVerify;
 
-    uint public reward;
-
     modifier onlyOwner()  {
         require(msg.sender == smartContractOwner, "You are not the owner.");
         _;
@@ -110,8 +108,7 @@ contract SmartContractVerificator {
 
     constructor(address _smartContract, address _programmerVerificator) public payable {
         require(isContract(_smartContract), "Specified address is not a smart contract! Address should be a smart contract address.");
-        require((msg.value % MAXIMUM_TESTERS == 0), "Should be dividable by 5 (MAXIMUM_TESTERS).");
-        reward += msg.value;
+        require((msg.value % MAXIMUM_TESTERS == 0), "Wei value should be dividable by 5 (MAXIMUM_TESTERS).");
         smartContractOwner = msg.sender;
         smartContractToVerify = _smartContract;
         programmerVerificator = Verificator(_programmerVerificator);
@@ -126,8 +123,7 @@ contract SmartContractVerificator {
 
     function increaseRewardStake() public payable {
         require((state == VerificationState.ACTIVE), "The smart contract is already locked or verified.");
-        require((msg.value % MAXIMUM_TESTERS == 0), "Should be dividable by 5 (MAXIMUM_TESTERS).");
-        reward += msg.value;
+        require((msg.value % MAXIMUM_TESTERS == 0), "Wei value should be dividable by 5 (MAXIMUM_TESTERS).");
     }
 
     function getRewardAmount() public view returns (uint) {
@@ -176,13 +172,11 @@ contract SmartContractVerificator {
         require(!testsMapping[_smartContractTest], "This smart contract address already exists.");
         require(testerNumber < MAXIMUM_TESTERS, "Maximum limit of testers is reached.");
 
-        address payable tester = msg.sender;
-
-        testers.push(tester);
-        testersMapping[tester] = true;
-        acceptanceMapping[tester] = _isAccepted;
-        testerSmartContractTestMapping[tester] = _smartContractTest;
-        testSmartContractTesterMapping[_smartContractTest] = tester;
+        testers.push(msg.sender);
+        testersMapping[msg.sender] = true;
+        acceptanceMapping[msg.sender] = _isAccepted;
+        testerSmartContractTestMapping[msg.sender] = _smartContractTest;
+        testSmartContractTesterMapping[_smartContractTest] = msg.sender;
         tests.push(_smartContractTest);
         testsMapping[_smartContractTest] = true;
 
@@ -284,7 +278,7 @@ contract SmartContractVerificator {
     }
 
     function rewardTesters() internal {
-        uint amount = reward / MAXIMUM_TESTERS;
+        uint amount = address(this).balance / MAXIMUM_TESTERS;
         for (uint i = 0; i < testers.length; i++) {
             if (!testerBlacklist[testers[i]]) {
                 (bool success,) = testers[i].call.value(amount)("");
