@@ -166,11 +166,12 @@ contract('SmartContractVerificator', (accounts) => {
 
     it('should distribute reward to the 5 level 2 swarm testers', async () => {
         // accounts 8, 9, 4, 5, 6 are the writers of the tests
-        let balanceAccount8Before = await web3.eth.getBalance(accounts[8]);
-        let balanceAccount9Before = await web3.eth.getBalance(accounts[9]);
-        let balanceAccount4Before = await web3.eth.getBalance(accounts[4]);
-        let balanceAccount5Before = await web3.eth.getBalance(accounts[5]);
-        let balanceAccount6Before = await web3.eth.getBalance(accounts[6]);
+        let balanceAccount8Before = parseInt(await web3.eth.getBalance(accounts[8]));
+        let balanceAccount9Before = parseInt(await web3.eth.getBalance(accounts[9]));
+        let balanceAccount4Before = parseInt(await web3.eth.getBalance(accounts[4]));
+        let balanceAccount5Before = parseInt(await web3.eth.getBalance(accounts[5]));
+        let balanceAccount6Before = parseInt(await web3.eth.getBalance(accounts[6]));
+        let balanceAccount111Before = parseInt(await web3.eth.getBalance(accounts[3]));
         let rewardAmount = parseInt((await this.smartContractVerificatorInstance.getRewardAmount()).toString());
         for (let i = 10; i < 110; i++) {
             if (i < 10) {
@@ -194,28 +195,36 @@ contract('SmartContractVerificator', (accounts) => {
             }
         }
 
-        let balanceAccount8 = await web3.eth.getBalance(accounts[8]);
-        let balanceAccount9 = await web3.eth.getBalance(accounts[9]);
-        let balanceAccount4 = await web3.eth.getBalance(accounts[4]);
-        let balanceAccount5 = await web3.eth.getBalance(accounts[5]);
-        let balanceAccount6 = await web3.eth.getBalance(accounts[6]);
+        let balanceAccount8 = parseInt(await web3.eth.getBalance(accounts[8]));
+        let balanceAccount9 = parseInt(await web3.eth.getBalance(accounts[9]));
+        let balanceAccount4 = parseInt(await web3.eth.getBalance(accounts[4]));
+        let balanceAccount5 = parseInt(await web3.eth.getBalance(accounts[5]));
+        let balanceAccount6 = parseInt(await web3.eth.getBalance(accounts[6]));
+        let balanceAccount111 = parseInt(await web3.eth.getBalance(accounts[3]));
+        /*
+        console.log("SWARM LEVEL 2 TESTERS: " + (await this.smartContractVerificatorInstance.getSwarmLevelTwoTesters()).toString());
+        console.log("ACTUAL: " + accounts[8] + ", " + accounts[9] + ", " + accounts[4] + ", " + accounts[5] +", "+ accounts[6]);
         console.log(balanceAccount8Before.toString() + " , AFTER: " + balanceAccount8.toString());
         console.log(balanceAccount9Before.toString() + " , AFTER: " + balanceAccount9.toString());
         console.log(balanceAccount4Before.toString() + " , AFTER: " + balanceAccount4.toString());
         console.log(balanceAccount5Before.toString() + " , AFTER: " + balanceAccount5.toString());
         console.log(balanceAccount6Before.toString() + " , AFTER: " + balanceAccount6.toString());
-        assert.ok(parseInt(balanceAccount8Before) < parseInt(balanceAccount8), "Balance should be higher because of the reward");
-        assert.ok(parseInt(balanceAccount9Before) < parseInt(balanceAccount9), "Balance should be higher because of the reward");
-        assert.ok(parseInt(balanceAccount4Before) < parseInt(balanceAccount4), "Balance should be higher because of the reward");
-        assert.ok(parseInt(balanceAccount5Before) < parseInt(balanceAccount5), "Balance should be higher because of the reward");
-        assert.ok(parseInt(balanceAccount6Before) < parseInt(balanceAccount6), "Balance should be higher because of the reward");
+        console.log(balanceAccount111Before.toString() + " , AFTER: " + balanceAccount111.toString());
+        console.log("REWARD: " + rewardAmount + ", REWARD FIFTH: " + parseInt(rewardAmount) / 5);
+        */
+        assert.ok((balanceAccount8Before) < (balanceAccount8), "Balance should be higher because of the reward");
+        assert.ok((balanceAccount9Before) < (balanceAccount9), "Balance should be higher because of the reward");
+        assert.ok((balanceAccount4Before) < (balanceAccount4), "Balance should be higher because of the reward");
+        assert.ok((balanceAccount5Before) < (balanceAccount5), "Balance should be higher because of the reward");
+        assert.ok((balanceAccount6Before) < (balanceAccount6), "Balance should be higher because of the reward");
         if (rewardAmount % 5 === 0) {
             let fifthReward = rewardAmount / 5;
-            assert.equal(parseInt(balanceAccount8Before) + parseInt(fifthReward), parseInt(balanceAccount8), "Balance should be the fifth reward higher.");
-            assert.equal(parseInt(balanceAccount9Before) + parseInt(fifthReward), parseInt(balanceAccount9), "Balance should be the fifth reward higher.");
-            assert.equal(parseInt(balanceAccount4Before) + parseInt(fifthReward), parseInt(balanceAccount4), "Balance should be the fifth reward higher.");
-            assert.equal(parseInt(balanceAccount5Before) + parseInt(fifthReward), parseInt(balanceAccount5), "Balance should be the fifth reward higher.");
-            assert.equal(parseInt(balanceAccount6Before) + parseInt(fifthReward), parseInt(balanceAccount6), "Balance should be the fifth reward higher.");
+            let gas = 3538;
+            assert.equal((balanceAccount8Before) + (fifthReward) - gas, (balanceAccount8), "Balance should be the fifth reward higher.");
+            assert.equal((balanceAccount9Before) + (fifthReward) - gas, (balanceAccount9), "Balance should be the fifth reward higher.");
+            assert.equal((balanceAccount4Before) + (fifthReward) - gas, (balanceAccount4), "Balance should be the fifth reward higher.");
+            assert.equal((balanceAccount5Before) + (fifthReward) - gas, (balanceAccount5), "Balance should be the fifth reward higher.");
+            assert.equal((balanceAccount6Before) + (fifthReward) - gas, (balanceAccount6), "Balance should be the fifth reward higher.");
         } else {
             console.log("Can not be divided by 5.");
         }

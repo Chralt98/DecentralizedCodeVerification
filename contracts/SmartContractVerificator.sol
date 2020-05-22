@@ -60,6 +60,7 @@ contract SmartContractVerificator {
     mapping(address => bool) reviewerExistsMapping;
 
     address[] public swarmLevelTwoTests;
+    address[] public swarmLevelTwoTesters;
     uint swarmLevelTwoTestIndex = 0;
     // first is address of smart contract test
     // second is reviewer and third is rating of reviewer
@@ -82,6 +83,8 @@ contract SmartContractVerificator {
     address public smartContractOwner;
     // owner is the creator of the to verified smart contract
     address public smartContractToVerify;
+
+    uint public reward;
 
     modifier onlyOwner()  {
         require(msg.sender == smartContractOwner, "You are not the owner.");
@@ -108,6 +111,7 @@ contract SmartContractVerificator {
     constructor(address _smartContract, address _programmerVerificator) public payable {
         require(isContract(_smartContract), "Specified address is not a smart contract! Address should be a smart contract address.");
         require((msg.value % MAXIMUM_TESTERS == 0), "Should be dividable by 5 (MAXIMUM_TESTERS).");
+        reward += msg.value;
         smartContractOwner = msg.sender;
         smartContractToVerify = _smartContract;
         programmerVerificator = Verificator(_programmerVerificator);
@@ -123,6 +127,7 @@ contract SmartContractVerificator {
     function increaseRewardStake() public payable {
         require((state == VerificationState.ACTIVE), "The smart contract is already locked or verified.");
         require((msg.value % MAXIMUM_TESTERS == 0), "Should be dividable by 5 (MAXIMUM_TESTERS).");
+        reward += msg.value;
     }
 
     function getRewardAmount() public view returns (uint) {
@@ -153,6 +158,10 @@ contract SmartContractVerificator {
 
     function getSwarmLevelTwoTests() public view onlyOwnerAndVerifiedProgrammer returns (address[] memory) {
         return swarmLevelTwoTests;
+    }
+
+    function getSwarmLevelTwoTesters() public view returns (address[] memory) {
+        return swarmLevelTwoTesters;
     }
 
     // the tester has written a test for the to verified smart contract
@@ -246,6 +255,7 @@ contract SmartContractVerificator {
             return;
         }
         // swarm is 3 so the tester has written a good test
+        swarmLevelTwoTesters.push(testSmartContractTesterMapping[_smartContractTest]);
         swarmLevelTwoTests.push(_smartContractTest);
         swarmLevelTwoTestIndex++;
         // if the last swarm level 2 contract is called this function (the maximum smart contract test with rating of 2) then checkSmartContractVerification
@@ -274,11 +284,10 @@ contract SmartContractVerificator {
     }
 
     function rewardTesters() internal {
-        // TODO: wei not divisible by 5 problem fix
+        uint amount = reward / MAXIMUM_TESTERS;
         for (uint i = 0; i < testers.length; i++) {
             if (!testerBlacklist[testers[i]]) {
-                // TODO: not sure if wallet -> tester
-                (bool success,) = testers[i].call.value(address(this).balance / MAXIMUM_TESTERS)("");
+                (bool success,) = testers[i].call.value(amount)("");
                 if (success) emit TesterRewarded(testers[i]);
             }
         }
