@@ -69,30 +69,32 @@
 
     <div class="bg-light">
         <div class="container d-flex justify-content-end">
-            <div class="btn-group">
+            <div class="dropdown">
+                <button id="dropdown01" type="button" aria-haspopup="true"
+                        aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown01"
+                        class="dropdown-toggle btn btn-outline-secondary mr-sm-2">Sort by
+                </button>
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
-                    <a class="dropdown-item" href="#">Date</a>
-                    <a class="dropdown-item" href="#">Reward</a>
-                    <a class="dropdown-item" href="#">Lines of code</a>
+                    <button class="dropdown-item" type="button">Date</button>
+                    <button class="dropdown-item" type="button">Reward</button>
+                    <button class="dropdown-item" type="button">Lines of code</button>
                 </div>
-                <button type="button" aria-haspopup="true"
-                        aria-expanded="false" data-toggle="dropdown" id="dropdown01"
-                        class="dropdown-toggle btn btn-sm btn-outline-secondary mr-sm-2">Sort by
+            </div>
+            <div class="dropdown">
+                <button id="dropdown02" type="button" aria-haspopup="true"
+                        aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown02"
+                        class="dropdown-toggle btn btn-outline-secondary mr-sm-2">State
                 </button>
                 <div class="dropdown-menu" aria-labelledby="dropdown02">
-                    <a class="dropdown-item" href="#">ACTIVE</a>
-                    <a class="dropdown-item" href="#">VERIFIED</a>
-                    <a class="dropdown-item" href="#">LOCKED</a>
+                    <button class="dropdown-item" type="button">ACTIVE</button>
+                    <button class="dropdown-item" type="button">VERIFIED</button>
+                    <button class="dropdown-item" type="button">LOCKED</button>
                 </div>
-                <button type="button" aria-haspopup="true"
-                        aria-expanded="false" data-toggle="dropdown" id="dropdown02"
-                        class="dropdown-toggle btn btn-sm btn-outline-secondary mr-sm-2">State
-                </button>
-                <form class="form-inline">
-                    <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-                    <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search by address</button>
-                </form>
             </div>
+            <form class="form-inline">
+                <input class="form-control mr-sm-2" type="text" placeholder="Search 0x..." aria-label="Search">
+                <button class="btn btn-outline-secondary my-2 my-sm-0" type="submit">Search by address</button>
+            </form>
         </div>
     </div>
 
