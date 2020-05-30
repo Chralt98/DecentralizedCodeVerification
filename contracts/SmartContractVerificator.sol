@@ -148,6 +148,13 @@ contract SmartContractVerificator {
         }
     }
 
+    function getNumberOfEvaluations(address _smartContractTest) public view returns (uint) {
+        uint zeros = testRatingMapping[_smartContractTest].zeroPoints;
+        uint ones = testRatingMapping[_smartContractTest].onePoints;
+        uint twos = testRatingMapping[_smartContractTest].twoPoints;
+        return zeros + ones + twos;
+    }
+
     function getTests() public view onlyVerifiedProgrammer returns (address[] memory) {
         return tests;
     }
