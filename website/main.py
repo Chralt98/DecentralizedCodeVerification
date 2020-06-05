@@ -9,6 +9,7 @@ from flask import Flask, render_template, request, redirect, \
 # pip install pyopenssl
 # from OpenSSL import SSL
 import werkzeug
+from pymongo import MongoClient
 
 """
 The flask server application to run the website.
@@ -25,6 +26,18 @@ Please use the lastest encryption method!
 
 # flask app is initialized
 app = Flask(__name__)
+db_client = MongoClient("mongodb://localhost:27017/")
+
+db = db_client["mydatabase"]
+db.smart_contracts.insert_many([{'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'ether_amount': 42},
+                                {'code_lines': 456, 'state': 'LOCKED', 'eval_number': 500, 'ether_amount': 0},
+                                {'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'ether_amount': 0},
+                                {'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'ether_amount': 0},
+                                {'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'ether_amount': 0},
+                                {'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'ether_amount': 0},
+                                {'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500,
+                                 'ether_amount': 0}])
+db.smart_contracts.insert_one({'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'ether_amount': 42})
 
 
 @app.errorhandler(werkzeug.exceptions.NotFound)
@@ -51,13 +64,7 @@ def about():
 def home():
     # get the arguments of the url: request.args.get('name')
     if request.method == 'GET':
-        smart_contracts = [{'code_lines': '123', 'state': 'ACTIVE', 'eval_number': '321', 'ether_amount': '42'},
-                           {'code_lines': '456', 'state': 'LOCKED', 'eval_number': '500', 'ether_amount': '0'},
-                           {'code_lines': '789', 'state': 'VERIFIED', 'eval_number': '500', 'ether_amount': '0'},
-                           {'code_lines': '789', 'state': 'VERIFIED', 'eval_number': '500', 'ether_amount': '0'},
-                           {'code_lines': '789', 'state': 'VERIFIED', 'eval_number': '500', 'ether_amount': '0'},
-                           {'code_lines': '789', 'state': 'VERIFIED', 'eval_number': '500', 'ether_amount': '0'},
-                           {'code_lines': '789', 'state': 'VERIFIED', 'eval_number': '500', 'ether_amount': '0'}]
+        smart_contracts = db.smart_contracts.find({})
         return render_template('index.html', smart_contracts=smart_contracts)
 
 
