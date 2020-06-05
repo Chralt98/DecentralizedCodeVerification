@@ -51,7 +51,14 @@ def about():
 def home():
     # get the arguments of the url: request.args.get('name')
     if request.method == 'GET':
-        return render_template('index.html')
+        smart_contracts = [{'code_lines': '123', 'state': 'ACTIVE', 'eval_number': '321', 'ether_amount': '42'},
+                           {'code_lines': '456', 'state': 'LOCKED', 'eval_number': '500', 'ether_amount': '0'},
+                           {'code_lines': '789', 'state': 'VERIFIED', 'eval_number': '500', 'ether_amount': '0'},
+                           {'code_lines': '789', 'state': 'VERIFIED', 'eval_number': '500', 'ether_amount': '0'},
+                           {'code_lines': '789', 'state': 'VERIFIED', 'eval_number': '500', 'ether_amount': '0'},
+                           {'code_lines': '789', 'state': 'VERIFIED', 'eval_number': '500', 'ether_amount': '0'},
+                           {'code_lines': '789', 'state': 'VERIFIED', 'eval_number': '500', 'ether_amount': '0'}]
+        return render_template('index.html', smart_contracts=smart_contracts)
 
 
 if __name__ == '__main__':
