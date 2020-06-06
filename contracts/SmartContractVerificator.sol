@@ -106,9 +106,8 @@ contract SmartContractVerificator {
         _;
     }
 
-    constructor(address _smartContract, address _programmerVerificator) public payable {
+    constructor(address _smartContract, address _programmerVerificator) public {
         require(isContract(_smartContract), "Specified address is not a smart contract! Address should be a smart contract address.");
-        require((msg.value % MAXIMUM_TESTERS == 0), "Wei value should be dividable by 5 (MAXIMUM_TESTERS).");
         smartContractOwner = msg.sender;
         smartContractToVerify = _smartContract;
         programmerVerificator = Verificator(_programmerVerificator);

@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from __future__ import division, print_function, unicode_literals
 
 from flask import Flask, render_template, request, redirect, \
-    url_for, make_response, session, escape, jsonify, Response
+    url_for, jsonify
 # pip install pyopenssl
 # from OpenSSL import SSL
 import werkzeug
@@ -29,23 +29,18 @@ app = Flask(__name__)
 db_client = MongoClient("mongodb://localhost:27017/")
 
 db = db_client["mydatabase"]
-db.smart_contracts.insert_many([{'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'ether_amount': 42},
-                                {'code_lines': 456, 'state': 'LOCKED', 'eval_number': 500, 'ether_amount': 0},
-                                {'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'ether_amount': 0},
-                                {'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'ether_amount': 0},
-                                {'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'ether_amount': 0},
-                                {'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'ether_amount': 0},
-                                {'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500,
-                                 'ether_amount': 0}])
-db.smart_contracts.insert_one({'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'ether_amount': 42})
-
-
-@app.errorhandler(werkzeug.exceptions.NotFound)
-def notfound(e):
-    response = jsonify(error=str(e), mykey='myvalue')
-    # get post of json_data = json.loads(jsondata)
-    # error is key and str(e) is value
-    return response, e.code
+db.smart_contracts.remove({})
+db.smart_contracts.insert_many(
+    [{'language': 'solidity', 'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'amount': 42},
+     {'language': 'python', 'code_lines': 456, 'state': 'LOCKED', 'eval_number': 500, 'amount': 0},
+     {'language': 'java', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
+     {'language': 'rust', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
+     {'language': 'go', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
+     {'language': 'dart', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
+     {'language': 'solidity', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500,
+      'ether_amount': 0}])
+db.smart_contracts.insert_one(
+    {'language': 'solidity', 'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'amount': 42})
 
 
 @app.route('/', defaults={'path': ''})
@@ -53,6 +48,11 @@ def notfound(e):
 def index(path):
     # if somebody calls domain only then the user will be redirected to home route
     return redirect(url_for('home'))
+
+
+@app.route('/upload', methods=['GET'])
+def upload():
+    return render_template('upload.html')
 
 
 @app.route('/about', methods=['GET'])

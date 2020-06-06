@@ -35,7 +35,7 @@
                     <a class="nav-link" href="/home">Home</a>
                 </li>
                 <li class="nav-item ">
-                    <a class="nav-link" href="/blog">Blog</a>
+                    <a class="nav-link" href="{{ url_for('upload') }}">Upload</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('about') }}">About</a>
@@ -54,38 +54,52 @@
         <section class="text-center">
             <div class="container">
                 <h1>Decentralized Code Verification</h1>
-                <p class="lead text-muted">Get your smart contracts tested and reviewed by smart programmers all over
+                <p class="lead text-muted">Get your code live written, tested and reviewed by smart programmers all over
                     the
                     world!</p>
-                <p>
-                    <a href="#" class="btn btn-primary my-2">Upload a smart contract</a>
-                    <a href="#" class="btn btn-secondary my-2">Become a verificator</a>
-                </p>
-                <hr class="hr-accent">
+                <div class="p-3">
+                    <a href="{{ url_for('upload') }}" class="btn btn-primary my-2">Upload Code</a>
+                    <a href="#" class="btn btn-primary my-2">Become a Verificator</a>
+                </div>
             </div>
         </section>
     </div>
+    <hr class="hr-accent">
 
 
     <div class="bg-light">
         <div class="container d-flex justify-content-end">
             <div class="dropdown">
-                <button id="dropdown01" type="button" aria-haspopup="true"
-                        aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown01"
+                <button id="dropdown02" type="button" aria-haspopup="true"
+                        aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown02"
                         class="dropdown-toggle btn btn-outline-secondary mr-sm-2">Sort by
                 </button>
-                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                <div class="dropdown-menu" aria-labelledby="dropdown02">
                     <button class="dropdown-item" type="button">Date</button>
                     <button class="dropdown-item" type="button">Reward</button>
                     <button class="dropdown-item" type="button">Lines of code</button>
                 </div>
             </div>
             <div class="dropdown">
-                <button id="dropdown02" type="button" aria-haspopup="true"
-                        aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown02"
+                <button id="dropdown01" type="button" aria-haspopup="true"
+                        aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown01"
+                        class="dropdown-toggle btn btn-outline-secondary mr-sm-2">Language
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                    <button class="dropdown-item" type="button">Solidity</button>
+                    <button class="dropdown-item" type="button">Java</button>
+                    <button class="dropdown-item" type="button">Python</button>
+                    <button class="dropdown-item" type="button">C++</button>
+                    <button class="dropdown-item" type="button">Javascript</button>
+                    <button class="dropdown-item" type="button">Go</button>
+                </div>
+            </div>
+            <div class="dropdown">
+                <button id="dropdown03" type="button" aria-haspopup="true"
+                        aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown03"
                         class="dropdown-toggle btn btn-outline-secondary mr-sm-2">State
                 </button>
-                <div class="dropdown-menu" aria-labelledby="dropdown02">
+                <div class="dropdown-menu" aria-labelledby="dropdown03">
                     <button class="dropdown-item" type="button">ACTIVE</button>
                     <button class="dropdown-item" type="button">VERIFIED</button>
                     <button class="dropdown-item" type="button">LOCKED</button>
@@ -107,7 +121,14 @@
                         <ul class="list-group mb-3">
                             <li class="list-group-item d-flex justify-content-between lh-condensed">
                                 <div>
-                                    <h6 class="my-0">Code lines</h6>
+                                    <h6 class="my-0">Programming Language</h6>
+                                    <small class="text-muted">programming language which is used for the code</small>
+                                </div>
+                                <span class="text-muted">{{item.language}}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between lh-condensed">
+                                <div>
+                                    <h6 class="my-0">Code Lines</h6>
                                     <small class="text-muted">number of total lines of code</small>
                                 </div>
                                 <span class="text-muted">{{item.code_lines}}</span>
@@ -121,17 +142,17 @@
                             </li>
                             <li class="list-group-item d-flex justify-content-between lh-condensed">
                                 <div>
-                                    <h6 class="my-0">Number of evaluations</h6>
+                                    <h6 class="my-0">Number of Evaluations</h6>
                                     <small class="text-muted">number of total evaluations for the tests</small>
                                 </div>
                                 <span class="text-muted">{{item.eval_number}}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between bg-light">
                                 <div class="text-success">
-                                    <h6 class="my-0">Reward stake</h6>
+                                    <h6 class="my-0">Reward Stake</h6>
                                     <small class="text-muted">the total reward for the testers</small>
                                 </div>
-                                <span class="text-success">{{item.ether_amount}} ether</span>
+                                <span class="text-success">{{item.amount}} IOTA per second</span>
                             </li>
                         </ul>
 
@@ -141,7 +162,6 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">Test</button>
                                 </div>
                                 <small class="text-muted">{{item.time}}</small>
                             </div>
@@ -156,15 +176,6 @@
 </main>
 
 <footer>
-    <div class="container">
-        <ul class="list-unstyled list-inline text-center social-icons-list">
-            <li class="list-inline-item">
-                <a href="https://github.com/Chralt98" target="_blank" class="btn-floating btn-dribbble mx-1">
-                    <img src="../static/images/github.svg" width="64" height="64" alt="GitHub Icon">
-                </a>
-            </li>
-        </ul>
-    </div>
     <div class="footer-copyright text-center py-3">&copy; 2020 Chralt. All Rights Reserved.</div>
 </footer>
 
