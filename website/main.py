@@ -31,16 +31,16 @@ db_client = MongoClient("mongodb://localhost:27017/")
 db = db_client["mydatabase"]
 db.smart_contracts.remove({})
 db.smart_contracts.insert_many(
-    [{'language': 'solidity', 'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'amount': 42},
-     {'language': 'python', 'code_lines': 456, 'state': 'LOCKED', 'eval_number': 500, 'amount': 0},
-     {'language': 'java', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
-     {'language': 'rust', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
-     {'language': 'go', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
-     {'language': 'dart', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
-     {'language': 'solidity', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500,
+    [{'language': 'Solidity', 'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'amount': 42},
+     {'language': 'Serpent', 'code_lines': 456, 'state': 'LOCKED', 'eval_number': 500, 'amount': 0},
+     {'language': 'LLL', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
+     {'language': 'Mutan', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
+     {'language': 'Solidity', 'code_lines': 789, 'state': 'LOCKED', 'eval_number': 500, 'amount': 0},
+     {'language': 'Serpent', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
+     {'language': 'LLL', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500,
       'amount': 0}])
 db.smart_contracts.insert_one(
-    {'language': 'solidity', 'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'amount': 42})
+    {'language': 'Solidity', 'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'amount': 42})
 
 
 @app.route('/', defaults={'path': ''})

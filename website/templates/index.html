@@ -53,12 +53,13 @@
     <div class="container">
         <section class="text-center">
             <div class="container">
-                <h1>Decentralized Code Verification</h1>
-                <p class="lead text-muted">Get your code live written, tested and reviewed by smart programmers all over
+                <h1>Decentralized Smart Contract Verification</h1>
+                <p class="lead text-muted">Get your Ethereum smart contract live tested, debugged and reviewed by
+                    programmers all over
                     the
                     world!</p>
                 <div class="p-3">
-                    <a href="{{ url_for('upload') }}" class="btn btn-primary my-2">Upload Code</a>
+                    <a href="{{ url_for('upload') }}" class="btn btn-primary my-2">Upload Smart Contract</a>
                     <a href="#" class="btn btn-primary my-2">Become a Verificator</a>
                 </div>
             </div>
@@ -70,6 +71,18 @@
     <div class="bg-light">
         <div class="container d-flex justify-content-end">
             <div class="dropdown">
+                <button id="dropdown01" type="button" aria-haspopup="true"
+                        aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown01"
+                        class="dropdown-toggle btn btn-outline-secondary mr-sm-2">Language
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdown02">
+                    <button class="dropdown-item" type="button">Soldity</button>
+                    <button class="dropdown-item" type="button">Serpent</button>
+                    <button class="dropdown-item" type="button">LLL</button>
+                    <button class="dropdown-item" type="button">Mutan</button>
+                </div>
+            </div>
+            <div class="dropdown">
                 <button id="dropdown02" type="button" aria-haspopup="true"
                         aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown02"
                         class="dropdown-toggle btn btn-outline-secondary mr-sm-2">Sort by
@@ -78,20 +91,6 @@
                     <button class="dropdown-item" type="button">Date</button>
                     <button class="dropdown-item" type="button">Reward</button>
                     <button class="dropdown-item" type="button">Lines of code</button>
-                </div>
-            </div>
-            <div class="dropdown">
-                <button id="dropdown01" type="button" aria-haspopup="true"
-                        aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown01"
-                        class="dropdown-toggle btn btn-outline-secondary mr-sm-2">Language
-                </button>
-                <div class="dropdown-menu" aria-labelledby="dropdown01">
-                    <button class="dropdown-item" type="button">Solidity</button>
-                    <button class="dropdown-item" type="button">Java</button>
-                    <button class="dropdown-item" type="button">Python</button>
-                    <button class="dropdown-item" type="button">C++</button>
-                    <button class="dropdown-item" type="button">Javascript</button>
-                    <button class="dropdown-item" type="button">Go</button>
                 </div>
             </div>
             <div class="dropdown">
@@ -152,7 +151,7 @@
                                     <h6 class="my-0">Reward Stake</h6>
                                     <small class="text-muted">the total reward for the testers</small>
                                 </div>
-                                <span class="text-success">{{item.amount}} IOTA per second</span>
+                                <span class="text-success">{{item.amount}} Ether per hour</span>
                             </li>
                         </ul>
 
@@ -161,7 +160,8 @@
                                 tested.</p>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="btn-group">
-                                    <a href="{{ url_for('view') }}" class="button btn btn-sm btn-outline-secondary">View</a>
+                                    <a href="{{ url_for('view') }}"
+                                       class="button btn btn-sm btn-outline-secondary">View</a>
                                 </div>
                                 <small class="text-muted">{{item.time}}</small>
                             </div>
