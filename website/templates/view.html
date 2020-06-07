@@ -34,8 +34,8 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('home') }}">Home</a>
                 </li>
-                <li class="nav-item active">
-                    <a class="nav-link" href="/upload">Upload</a>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('upload') }}">Upload</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('about') }}">About</a>
@@ -69,18 +69,7 @@
     <div class="container min-vh-100 justify-content-center">
         <form action="" method=post enctype="multipart/form-data">
             <div class="form-group text-center">
-                <label for="inputSmartContractAddress">Input Code Text</label>
-                <textarea class="form-control" name="codeText" rows="5" id="codeTextInput"></textarea>
-                <small id="codeTextHelp" class="form-text text-muted">Paste in your code.</small>
-            </div>
-            <h2 class="text-center">OR</h2>
-            <div class="form-group text-center">
-                <label for="inputSmartContractAddress">Input IOTA Address</label>
-                <input type="text" class="form-control" name="iotaAddress" id="inputSmartContractAddress">
-                <small id="addressHelp" class="form-text text-muted">Paste in the address to the code source.</small>
-            </div>
-            <div class="p-3 text-center">
-                <button type="submit" class="btn btn-primary my-2">Submit</button>
+                <textarea class="form-control" name="codeText" rows="25" id="codeTextInput"></textarea>
             </div>
         </form>
     </div>

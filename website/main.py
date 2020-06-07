@@ -5,10 +5,10 @@ from __future__ import absolute_import
 from __future__ import division, print_function, unicode_literals
 
 from flask import Flask, render_template, request, redirect, \
-    url_for, jsonify
+    url_for
+from werkzeug.utils import secure_filename
 # pip install pyopenssl
 # from OpenSSL import SSL
-import werkzeug
 from pymongo import MongoClient
 
 """
@@ -38,7 +38,7 @@ db.smart_contracts.insert_many(
      {'language': 'go', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
      {'language': 'dart', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
      {'language': 'solidity', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500,
-      'ether_amount': 0}])
+      'amount': 0}])
 db.smart_contracts.insert_one(
     {'language': 'solidity', 'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'amount': 42})
 
@@ -50,8 +50,14 @@ def index(path):
     return redirect(url_for('home'))
 
 
-@app.route('/upload', methods=['GET'])
+@app.route('/upload', methods=['POST', 'GET'])
 def upload():
+    if request.method == 'POST':
+        # TODO: post the code to the IOTA Tangle and save the IOTA address to the mongoDB database
+        print(request.form['codeText'])
+        # TODO: check the IOTA Address to be a valid address
+        print(request.form['iotaAddress'])
+        # TODO: paste code text to the IOTA tangle and save the IOTA address to the mongoDB
     return render_template('upload.html')
 
 
@@ -60,7 +66,12 @@ def about():
     return render_template('about.html')
 
 
-@app.route('/home', methods=['POST', 'GET'])
+@app.route('/view', methods=['GET'])
+def view():
+    return render_template('view.html')
+
+
+@app.route('/home', methods=['GET'])
 def home():
     # get the arguments of the url: request.args.get('name')
     if request.method == 'GET':
