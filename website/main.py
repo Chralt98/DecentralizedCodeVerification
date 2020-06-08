@@ -31,16 +31,24 @@ db_client = MongoClient("mongodb://localhost:27017/")
 db = db_client["mydatabase"]
 db.smart_contracts.remove({})
 db.smart_contracts.insert_many(
-    [{'language': 'Solidity', 'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'amount': 42},
-     {'language': 'Serpent', 'code_lines': 456, 'state': 'LOCKED', 'eval_number': 500, 'amount': 0},
-     {'language': 'LLL', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
-     {'language': 'Mutan', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
-     {'language': 'Solidity', 'code_lines': 789, 'state': 'LOCKED', 'eval_number': 500, 'amount': 0},
-     {'language': 'Serpent', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500, 'amount': 0},
-     {'language': 'LLL', 'code_lines': 789, 'state': 'VERIFIED', 'eval_number': 500,
+    [{'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'Solidity', 'code_lines': 123,
+      'state': 'ACTIVE', 'eval_number': 0.74, 'amount': 132},
+     {'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'Serpent', 'code_lines': 456,
+      'state': 'LOCKED', 'eval_number': 1.0, 'amount': 0},
+     {'address': '0xBB9bc244D798123fDe783fCc1C72d3Vb8C189413', 'language': 'LLL', 'code_lines': 724,
+      'state': 'VERIFIED', 'eval_number': 1.0, 'amount': 0},
+     {'address': '0xBB9bc244D798123fDe783fCc1C72d3Fb8C189413', 'language': 'Mutan', 'code_lines': 70,
+      'state': 'VERIFIED', 'eval_number': 1.0, 'amount': 0},
+     {'address': '0xBB9bc244D798123fDe783fCc1C72d3Cb8C189413', 'language': 'Solidity', 'code_lines': 7523,
+      'state': 'LOCKED', 'eval_number': 1.0, 'amount': 0},
+     {'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'Serpent', 'code_lines': 689,
+      'state': 'ACTIVE', 'eval_number': 0.33, 'amount': 56},
+     {'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'LLL', 'code_lines': 189,
+      'state': 'VERIFIED', 'eval_number': 1.0,
       'amount': 0}])
 db.smart_contracts.insert_one(
-    {'language': 'Solidity', 'code_lines': 123, 'state': 'ACTIVE', 'eval_number': 321, 'amount': 42})
+    {'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'Solidity', 'code_lines': 123,
+     'state': 'ACTIVE', 'eval_number': 0.65, 'amount': 62})
 
 
 @app.route('/', defaults={'path': ''})
@@ -53,11 +61,9 @@ def index(path):
 @app.route('/upload', methods=['POST', 'GET'])
 def upload():
     if request.method == 'POST':
-        # TODO: post the code to the IOTA Tangle and save the IOTA address to the mongoDB database
-        print(request.form['codeText'])
-        # TODO: check the IOTA Address to be a valid address
-        print(request.form['iotaAddress'])
-        # TODO: paste code text to the IOTA tangle and save the IOTA address to the mongoDB
+        # TODO: check the address to be a valid address
+        print(request.form['smartContractAddress'])
+        return redirect(url_for('view', address=request.form['smartContractAddress']))
     return render_template('upload.html')
 
 
@@ -66,16 +72,22 @@ def about():
     return render_template('about.html')
 
 
-@app.route('/view', methods=['GET'])
-def view():
-    return render_template('view.html')
+@app.route('/view/<string:address>', methods=['GET'])
+def view(address):
+    # TODO: view ethereum address smart contract text code
+    code_text = address
+    return render_template('view.html', code_text=code_text)
 
 
-@app.route('/home', methods=['GET'])
+@app.route('/home', methods=['GET', 'POST'])
 def home():
     # get the arguments of the url: request.args.get('name')
     if request.method == 'GET':
-        smart_contracts = db.smart_contracts.find({})
+        return render_template('index.html', smart_contracts=db.smart_contracts.find({}))
+    elif request.method == 'POST':
+        if request.form['searchAddress'] == '':
+            return render_template('index.html', smart_contracts=db.smart_contracts.find({}))
+        smart_contracts = db.smart_contracts.find({'address': request.form['searchAddress']})
         return render_template('index.html', smart_contracts=smart_contracts)
 
 

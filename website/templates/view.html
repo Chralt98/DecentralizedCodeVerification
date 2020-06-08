@@ -54,8 +54,8 @@
         <section class="text-center">
             <div class="container">
                 <h1>Decentralized Smart Contract Verification</h1>
-                <p class="lead text-muted">Get your Ethereum smart contract live tested, debugged and reviewed by
-                    programmers all over
+                <p class="lead text-muted">Get your Ethereum smart contract live tested, debugged, reviewed and verified
+                    by programmers all over
                     the
                     world!</p>
                 <div class="p-3">
@@ -70,7 +70,7 @@
     <div class="container min-vh-100 justify-content-center">
         <form action="" method=post enctype="multipart/form-data">
             <div class="form-group text-center">
-                <textarea class="form-control" name="codeText" rows="25" id="codeTextInput"></textarea>
+                <textarea class="form-control" name="codeText" rows="25" id="codeTextInput">{{ code_text | safe }}</textarea>
             </div>
         </form>
     </div>
