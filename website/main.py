@@ -61,7 +61,11 @@ def index(path):
 @app.route('/upload', methods=['POST', 'GET'])
 def upload():
     if request.method == 'POST':
+        # TODO: let the user post the code, because smart contract address can not be viewed (only verified by etherscan could be viewed)
+        # TODO https://docs.openzeppelin.com/contracts/3.x/api/payment use PaymentSplitter for the testers
         # TODO: check the address to be a valid address
+        # TODO security smart contract testing is already on the market
+        # TODO: specialize on live coding for crypto per second
         print(request.form['smartContractAddress'])
         return redirect(url_for('view', address=request.form['smartContractAddress']))
     return render_template('upload.html')

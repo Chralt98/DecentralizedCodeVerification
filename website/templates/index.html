@@ -53,13 +53,13 @@
     <div class="container">
         <section class="text-center">
             <div class="container">
-                <h1>Decentralized Smart Contract Verification</h1>
-                <p class="lead text-muted">Get your Ethereum smart contract live tested, debugged, reviewed and verified by programmers all over
+                <h1>Decentralized Smart Contract Live Coding</h1>
+                <p class="lead text-muted">Get your Solidity smart contract live coded by programmers all over
                     the
                     world!</p>
                 <div class="p-3">
-                    <a href="{{ url_for('upload') }}" class="btn btn-primary my-2">Upload Smart Contract</a>
-                    <a href="#" class="btn btn-primary my-2">Become a Verificator</a>
+                    <a href="{{ url_for('upload') }}" class="btn btn-primary my-2">Upload code request</a>
+                    <a href="#" class="btn btn-primary my-2">Become a developer</a>
                 </div>
             </div>
         </section>
@@ -70,37 +70,13 @@
     <div class="bg-light">
         <div class="container d-flex justify-content-end">
             <div class="dropdown">
-                <button id="dropdown02" type="button" aria-haspopup="true"
-                        aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown02"
-                        class="dropdown-toggle btn btn-outline-secondary mr-sm-2">Sort by
-                </button>
-                <div class="dropdown-menu" aria-labelledby="dropdown02">
-                    <button class="dropdown-item" type="button">Date</button>
-                    <button class="dropdown-item" type="button">Reward</button>
-                    <button class="dropdown-item" type="button">Lines of code</button>
-                </div>
-            </div>
-            <div class="dropdown">
                 <button id="dropdown01" type="button" aria-haspopup="true"
                         aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown01"
-                        class="dropdown-toggle btn btn-outline-secondary mr-sm-2">Language
+                        class="dropdown-toggle btn btn-outline-secondary mr-sm-2">Sort by
                 </button>
-                <div class="dropdown-menu" aria-labelledby="dropdown02">
-                    <button class="dropdown-item" type="button">Soldity</button>
-                    <button class="dropdown-item" type="button">Serpent</button>
-                    <button class="dropdown-item" type="button">LLL</button>
-                    <button class="dropdown-item" type="button">Mutan</button>
-                </div>
-            </div>
-            <div class="dropdown">
-                <button id="dropdown03" type="button" aria-haspopup="true"
-                        aria-expanded="false" data-toggle="dropdown" aria-labelledby="dropdown03"
-                        class="dropdown-toggle btn btn-outline-secondary mr-sm-2">State
-                </button>
-                <div class="dropdown-menu" aria-labelledby="dropdown03">
-                    <button class="dropdown-item" type="button">ACTIVE</button>
-                    <button class="dropdown-item" type="button">VERIFIED</button>
-                    <button class="dropdown-item" type="button">LOCKED</button>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                    <button class="dropdown-item" type="button">Date</button>
+                    <button class="dropdown-item" type="button">Reward</button>
                 </div>
             </div>
             <form action="" class="form-inline" method=post enctype="multipart/form-data">
@@ -119,36 +95,15 @@
                         <ul class="list-group mb-3">
                             <li class="list-group-item d-flex justify-content-between lh-condensed">
                                 <div>
-                                    <h6 class="my-0">Programming Language</h6>
-                                    <small class="text-muted">programming language which is used for the code</small>
+                                    <h6 class="my-0">Viewers</h6>
+                                    <small class="text-muted">number of live coding viewers</small>
                                 </div>
-                                <span class="text-muted">{{item.language}}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between lh-condensed">
-                                <div>
-                                    <h6 class="my-0">Code Lines</h6>
-                                    <small class="text-muted">number of total lines of code</small>
-                                </div>
-                                <span class="text-muted">{{item.code_lines}}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between lh-condensed">
-                                <div>
-                                    <h6 class="my-0">State</h6>
-                                    <small class="text-muted">state of smart contract verificaton</small>
-                                </div>
-                                <span class="text-muted">{{item.state}}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between lh-condensed">
-                                <div>
-                                    <h6 class="my-0">Progress of Evaluations</h6>
-                                    <small class="text-muted">percentage of total evaluations for the tests</small>
-                                </div>
-                                <span class="text-muted">{{item.eval_number * 100}}%</span>
+                                <span class="text-muted">8391</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between bg-light">
                                 <div class="text-success">
                                     <h6 class="my-0">Reward Stake</h6>
-                                    <small class="text-muted">the total reward for the testers</small>
+                                    <small class="text-muted">the reward ether stream which is instantly payed</small>
                                 </div>
                                 <span class="text-success">{{item.amount}} Ether per hour</span>
                             </li>
