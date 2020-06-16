@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/DecentralizedCodeVerification.iml" filepath="$PROJECT_DIR$/.idea/DecentralizedCodeVerification.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../play-ed/.idea/play-ed.iml" filepath="$PROJECT_DIR$/../play-ed/.idea/play-ed.iml" />
     </modules>
   </component>
 </project>

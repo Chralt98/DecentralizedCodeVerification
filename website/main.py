@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals
 
 from flask import Flask, render_template, request, redirect, \
     url_for
-from werkzeug.utils import secure_filename
+from flask_socketio import SocketIO, join_room, leave_room, send, emit
 # pip install pyopenssl
 # from OpenSSL import SSL
 from pymongo import MongoClient
@@ -16,6 +16,7 @@ The flask server application to run the website.
 Created by @author Chralt
 """
 
+# TODO: IMPORTANT for testing is using Chrome Browser not safari!!!!!!!!!!
 '''
 The next shows the usage to use tls encryption on website (https).
 Please use the lastest encryption method!
@@ -26,10 +27,12 @@ Please use the lastest encryption method!
 
 # flask app is initialized
 app = Flask(__name__)
+socketio = SocketIO(app)
+
 db_client = MongoClient("mongodb://localhost:27017/")
 
 db = db_client["mydatabase"]
-db.smart_contracts.remove({})
+db.smart_contracts.delete_many({})
 db.smart_contracts.insert_many(
     [{'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'Solidity', 'code_lines': 123,
       'state': 'ACTIVE', 'eval_number': 0.74, 'amount': 132},
@@ -49,6 +52,20 @@ db.smart_contracts.insert_many(
 db.smart_contracts.insert_one(
     {'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'Solidity', 'code_lines': 123,
      'state': 'ACTIVE', 'eval_number': 0.65, 'amount': 62})
+
+smart_contract_code = {'default': 'pragma solidity >=0.4.16 <0.7.0;\n'
+                                  '\n'
+                                  'contract SimpleStorage {\n'
+                                  '    uint storedData;\n'
+                                  '\n'
+                                  '    function set(uint x) public {\n'
+                                  '        storedData = x;\n'
+                                  '    }\n'
+                                  '\n'
+                                  '    function get() public view returns (uint) {\n'
+                                  '        return storedData;\n'
+                                  '    }\n'
+                                  '}'}
 
 
 @app.route('/', defaults={'path': ''})
@@ -76,11 +93,40 @@ def about():
     return render_template('about.html')
 
 
+@socketio.on('join')
+def on_join(data):
+    username = data['username']
+    room = data['room']
+    join_room(room)
+    send(username + ' has entered the room.', room=room)
+    emit('newUser', smart_contract_code[data['room']])
+
+
+@socketio.on('leave')
+def on_leave(data):
+    username = data['username']
+    room = data['room']
+    leave_room(room)
+    send(username + ' has left the room.', room=room)
+
+
+@socketio.on('connect')
+def on_connect():
+    print('a new user entered')
+    emit('newUser', smart_contract_code['default'])
+
+
+@socketio.on('text')
+def on_text(data):
+    smart_contract_code[data['room']] = data['text']
+    emit('text', data['text'], broadcast=True, room=data['room'])
+
+
 @app.route('/view/<string:address>', methods=['GET'])
 def view(address):
     # TODO: view ethereum address smart contract text code
     code_text = address
-    return render_template('view.html', code_text=code_text)
+    return render_template('view.html')
 
 
 @app.route('/home', methods=['GET', 'POST'])
@@ -100,4 +146,4 @@ if __name__ == '__main__':
     # ssl_context=context
     # set debug to false if production
     # uses threaded if multiple clients request the website this python file will run multi threaded
-    app.run(port=5000, debug=True, threaded=True)
+    socketio.run(app, port=5000, debug=True)
