@@ -67,22 +67,29 @@
         </section>
     </div>
     <hr class="hr-accent">
-
-    <div class="container min-vh-100 justify-content-center text-center">
-        <pre>
-            <textarea id="editor" rows="25" cols="120"></textarea>
-        </pre>
-    </div>
-
 </main>
+
+<pre>
+        <textarea id="editor"></textarea>
+</pre>
+
 
 <footer>
     <div class="footer-copyright text-center py-3">&copy; 2020 Chralt. All Rights Reserved.</div>
 </footer>
 
+<!-- Create a simple CodeMirror instance -->
+<link rel="stylesheet" href="../static/css/codemirror.css">
+<script src="../static/js/codemirror.js"></script>
+<script src="../static/js/javascript.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
         integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
 <script type="text/javascript" charset="utf-8">
+    var myTextArea = document.getElementById('editor');
+    var editor = CodeMirror.fromTextArea((myTextArea), {
+        lineNumbers: true
+    });
+    editor.setSize(null, 500);
     var socket = io();
     var text = {
         text: ''
@@ -92,34 +99,37 @@
         socket.emit('join', {'username': 'pasteInUserNameAsAddress', 'room': 'default'});
     });
 
-    // #editor is the id search for jquery
-    $("textarea#editor").on("keyup", function () {
-        // TODO should not pass the whole text should only pass the position of key added
-        var t = $(this).val();
-        var data = {
-            text: t
-        };
-        socket.emit('text', {'text': t, 'room': 'default'});
+    let serverEdits = {'text': '', 'from': '', 'to': '', 'origin': ''};
+
+    editor.on("change", function (cm, change) {
+        if (serverEdits['text'] === change.text
+            && serverEdits['from'] === change.from
+            && serverEdits['to'] === change.to
+            && serverEdits['origin'] === change.origin) {
+        } else {
+            socket.emit('clientText', {
+                'text': change.text,
+                'from': change.from,
+                'to': change.to,
+                'origin': change.origin,
+                'room': 'default'
+            });
+        }
     });
 
-    socket.on('text', function (data) {
-        text.text = data.text;
-        $("textarea#editor").val(data);
+    socket.on('serverText', function (data) {
+        editor.focus();
+        let doc = editor.getDoc();
+        serverEdits = {'text': data['text'], 'from': data['from'], 'to': data['to'], 'origin': data['origin']};
+        doc.replaceRange(data['text'], data['from'], data['to'], data['origin']);
     });
 
     socket.on('newUser', function (data) {
-        text.text = data;
-        $("textarea#editor").val(data);
+        console.log('new user added');
     });
 </script>
 <link rel="stylesheet"
       href="../static/css/default.min.css">
-<script src="../static/js/highlight.min.js"></script>
-<script src="../static/js/solidity.js"></script>
-<script>
-    hljs.registerLanguage('solidity', window.hljsDefineSolidity);
-    hljs.initHighlightingOnLoad();
-</script>
 <script src="../static/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

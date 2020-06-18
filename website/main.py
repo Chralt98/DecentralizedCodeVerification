@@ -116,6 +116,13 @@ def on_connect():
     emit('newUser', smart_contract_code['default'])
 
 
+@socketio.on('clientText')
+def on_client_text(data):
+    # TODO build the exact text also on the server side
+    # only broadcast it to any other then sender
+    emit('serverText', data, broadcast=True, room=data['room'], include_self=False)
+
+
 @socketio.on('text')
 def on_text(data):
     smart_contract_code[data['room']] = data['text']
