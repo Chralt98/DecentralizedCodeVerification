@@ -99,9 +99,13 @@
     let serverEdits = {'text': '', 'from': '', 'to': '', 'origin': ''};
 
     editor.on("change", function (cm, change) {
-        if (serverEdits['text'] === change.text
-            && serverEdits['from'] === change.from
-            && serverEdits['to'] === change.to
+        if (change.text == serverEdits['text']
+            && serverEdits['from'].line === change.from.line
+            && serverEdits['from'].ch === change.from.ch
+            && serverEdits['from'].sticky === change.from.sticky
+            && serverEdits['to'].line === change.to.line
+            && serverEdits['to'].ch === change.to.ch
+            && serverEdits['to'].sticky === change.to.sticky
             && serverEdits['origin'] === change.origin) {
         } else {
             socket.emit('clientText', {
@@ -123,8 +127,15 @@
         serverEdits = {'text': '', 'from': '', 'to': '', 'origin': ''};
     });
 
-    socket.on('newUser', function (data) {
-        console.log('new user joined');
+    socket.on('getCode', function (data) {
+        serverEdits = {
+            'text': data,
+            'from': {line: 0, ch: 0, sticky: null},
+            'to': {line: 0, ch: 0, sticky: null},
+            'origin': 'setValue'
+        };
+        editor.setValue(data);
+        serverEdits = {'text': '', 'from': '', 'to': '', 'origin': ''};
     });
 </script>
 <link rel="stylesheet"

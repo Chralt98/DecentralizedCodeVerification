@@ -53,19 +53,7 @@ db.smart_contracts.insert_one(
     {'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'Solidity', 'code_lines': 123,
      'state': 'ACTIVE', 'eval_number': 0.65, 'amount': 62})
 
-smart_contract_code = {'default': 'pragma solidity >=0.4.16 <0.7.0;\n'
-                                  '\n'
-                                  'contract SimpleStorage {\n'
-                                  '    uint storedData;\n'
-                                  '\n'
-                                  '    function set(uint x) public {\n'
-                                  '        storedData = x;\n'
-                                  '    }\n'
-                                  '\n'
-                                  '    function get() public view returns (uint) {\n'
-                                  '        return storedData;\n'
-                                  '    }\n'
-                                  '}'}
+smart_contracts_code = {'default': ['']}
 
 
 @app.route('/', defaults={'path': ''})
@@ -99,7 +87,9 @@ def on_join(data):
     room = data['room']
     join_room(room)
     send(username + ' has entered the room.', room=room)
-    emit('newUser', smart_contract_code[data['room']])
+    string_smart_contracts = '\n'.join(smart_contracts_code[data['room']])
+    print(string_smart_contracts)
+    emit('getCode', string_smart_contracts, broadcast=False)
 
 
 @socketio.on('leave')
@@ -113,21 +103,39 @@ def on_leave(data):
 @socketio.on('connect')
 def on_connect():
     print('a new user entered')
-    emit('newUser', smart_contract_code['default'])
 
 
 @socketio.on('clientText')
 def on_client_text(data):
-    print(data)
-    # TODO build the exact text also on the server side
+    handle_client_text(data['text'], data['from'], data['to'], data['origin'], data['room'])
     # only broadcast it to any other then sender
     emit('serverText', data, broadcast=True, room=data['room'], include_self=False)
 
 
-@socketio.on('text')
-def on_text(data):
-    smart_contract_code[data['room']] = data['text']
-    emit('text', data['text'], broadcast=True, room=data['room'])
+def handle_client_text(text, from1, to1, origin, room):
+    # this counts as selected text from and to is always the selected text
+    # from_char and to_char are equal for paste
+    from_line = from1['line']
+    from_char = from1['ch']
+    to_line = to1['line']
+    to_char = to1['ch']
+    text = text[0]
+    print('FROM_LINE: ' + str(from_line))
+    print('FROM_CHAR: ' + str(from_char))
+    print('TO_LINE: ' + str(to_line))
+    print('TO_CHAR: ' + str(to_char))
+    if from_line == to_line and from_char == to_char:
+        if origin == '+input' and text == '':
+            smart_contracts_code[room].append('')
+        # print one letter
+        smart_contracts_code[room][from_line] = ''.join(
+            replace_str_index(smart_contracts_code[room][from_line], from_char,
+                              text))
+        print(smart_contracts_code[room])
+
+
+def replace_str_index(text, index1=0, replacement=''):
+    return '%s%s%s' % (text[:index1], replacement, text[index1 + 1:])
 
 
 @app.route('/view/<string:address>', methods=['GET'])
