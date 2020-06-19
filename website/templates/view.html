@@ -91,9 +91,6 @@
     });
     editor.setSize(null, 500);
     var socket = io();
-    var text = {
-        text: ''
-    };
 
     socket.on('connect', function () {
         socket.emit('join', {'username': 'pasteInUserNameAsAddress', 'room': 'default'});
@@ -121,11 +118,13 @@
         editor.focus();
         let doc = editor.getDoc();
         serverEdits = {'text': data['text'], 'from': data['from'], 'to': data['to'], 'origin': data['origin']};
+        // following triggers change event:
         doc.replaceRange(data['text'], data['from'], data['to'], data['origin']);
+        serverEdits = {'text': '', 'from': '', 'to': '', 'origin': ''};
     });
 
     socket.on('newUser', function (data) {
-        console.log('new user added');
+        console.log('new user joined');
     });
 </script>
 <link rel="stylesheet"
