@@ -20,7 +20,7 @@
 
     <script src="../static/js/jquery-3.5.1.min.js"></script>
 </head>
-<body>
+<body style="margin: 0; height: 100%;">
 <nav class="navbar navbar-expand-sm fixed-top navbar-dark bg-dark">
     <div class="container topnav">
         <a class="navbar-brand" href="#">
@@ -49,35 +49,12 @@
         </div>
     </div>
 </nav>
-
-<main role="main">
-
-    <div class="container">
-        <section class="text-center">
-            <div class="container">
-                <h1>Decentralized Smart Contract Live Coding</h1>
-                <p class="lead text-muted">Get your Solidity smart contract live coded by programmers all over
-                    the
-                    world!</p>
-                <div class="p-3">
-                    <a href="{{ url_for('home') }}" class="btn btn-secondary my-2">View Home</a>
-                    <a href="#" class="btn btn-primary my-2">Become a developer</a>
-                </div>
-            </div>
-        </section>
-    </div>
-    <hr class="hr-accent">
-</main>
-
-<pre>
-        <textarea id="editor"></textarea>
-</pre>
-
-
+<textarea id="editor"></textarea>
+<!--
 <footer>
     <div class="footer-copyright text-center py-3">&copy; 2020 Chralt. All Rights Reserved.</div>
 </footer>
-
+-->
 <!-- Create a simple CodeMirror instance -->
 <link rel="stylesheet" href="../static/css/codemirror.css">
 <script src="../static/js/codemirror.js"></script>
@@ -89,7 +66,7 @@
     var editor = CodeMirror.fromTextArea((myTextArea), {
         lineNumbers: true
     });
-    editor.setSize(null, 500);
+    editor.setSize("100%", "100%");
     var socket = io();
 
     socket.on('connect', function () {
@@ -99,7 +76,19 @@
     let serverEdits = {'text': '', 'from': '', 'to': '', 'origin': ''};
 
     editor.on("change", function (cm, change) {
-        if (change.text == serverEdits['text']
+        /*
+        console.log(serverEdits['text']);
+        console.log(change.text);
+        console.log(change.text.toString() == serverEdits['text'].toString());
+        console.log(serverEdits['from'].line === change.from.line);
+        console.log(serverEdits['from'].ch === change.from.ch);
+        console.log(serverEdits['from'].sticky === change.from.sticky);
+        console.log(serverEdits['to'].line === change.to.line);
+        console.log(serverEdits['to'].ch === change.to.ch);
+        console.log(serverEdits['to'].sticky === change.to.sticky);
+        console.log(serverEdits['origin'] === change.origin);
+        */
+        if (change.text.toString() == serverEdits['text'].toString()
             && serverEdits['from'].line === change.from.line
             && serverEdits['from'].ch === change.from.ch
             && serverEdits['from'].sticky === change.from.sticky
@@ -108,6 +97,7 @@
             && serverEdits['to'].sticky === change.to.sticky
             && serverEdits['origin'] === change.origin) {
         } else {
+            console.log('EMIT');
             socket.emit('clientText', {
                 'text': change.text,
                 'from': change.from,
@@ -128,14 +118,30 @@
     });
 
     socket.on('getCode', function (data) {
+        /*
         serverEdits = {
-            'text': data,
+            'text': data.toString().split('\n'),
             'from': {line: 0, ch: 0, sticky: null},
             'to': {line: 0, ch: 0, sticky: null},
             'origin': 'setValue'
         };
         editor.setValue(data);
-        serverEdits = {'text': '', 'from': '', 'to': '', 'origin': ''};
+        */
+        editor.focus();
+        let doc = editor.getDoc();
+        data = JSON.parse(data);
+        for (let i = 0; i < data.length; i++) {
+            let change = data[i];
+            serverEdits = {
+                'text': change['text'],
+                'from': change['from'],
+                'to': change['to'],
+                'origin': change['origin']
+            };
+            // following triggers change event:
+            doc.replaceRange(change['text'], change['from'], change['to'], change['origin']);
+            serverEdits = {'text': '', 'from': '', 'to': '', 'origin': ''};
+        }
     });
 </script>
 <link rel="stylesheet"
