@@ -20,7 +20,7 @@ Created by @author Chralt
 # TODO: IMPORTANT for testing is using Chrome Browser not safari!!!!!!!!!!
 '''
 The next shows the usage to use tls encryption on website (https).
-Please use the lastest encryption method!
+Please use the lastest encryption method! 
 '''
 # context = SSL.Context(SSL.TLSv1_2_METHOD)
 # context.use_certificate('MyLetsEncrypt.cert')
