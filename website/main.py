@@ -10,7 +10,9 @@ from flask_socketio import SocketIO, join_room, leave_room, send, emit
 # pip install pyopenssl
 # from OpenSSL import SSL
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 from bson.json_util import dumps
+import json
 
 """
 The flask server application to run the website.
@@ -169,11 +171,13 @@ def handle_line_break(from_line, from_char, room):
 """
 
 
-@app.route('/view/<string:address>', methods=['GET'])
-def view(address):
-    # TODO: view ethereum address smart contract text code
-    code_text = address
-    return render_template('view.html')
+@app.route('/view/<string:room>', methods=['GET'])
+def view(room):
+    if ObjectId.is_valid(room):
+        smart_contracts = list(dumps(db.smart_contracts.find({'_id': ObjectId(room)})))
+        if len(smart_contracts) > 0:
+            return render_template('view.html', room=room)
+    return render_template('page_not_found.html')
 
 
 @app.route('/home', methods=['GET', 'POST'])

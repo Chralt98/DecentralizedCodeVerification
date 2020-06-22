@@ -13,7 +13,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="../static/css/bootstrap.min.css">
 
-    <title>Chralt</title>
+    <title>Code4Crypto</title>
     <!-- Custom styles for this template -->
     <link href="../static/css/main.css" rel="stylesheet">
     <link rel="shortcut icon" sizes="16x16 24x24 32x32 48x48 64x64" href="../static/images/favicon.ico">
@@ -23,7 +23,7 @@
     <div class="container topnav">
         <a class="navbar-brand" href="#">
             <img src="../static/images/earth.png" width="32" height="32" class="d-inline-block align-top" alt="Icon">
-            Chralt
+            Code4Crypto
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
                 aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
@@ -114,7 +114,7 @@
                                 tested.</p>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="btn-group">
-                                    <a href="{{ url_for('view', address=item.address) }}"
+                                    <a href="{{ url_for('view', room=item._id) }}"
                                        class="button btn btn-sm btn-outline-secondary">View</a>
                                 </div>
                                 <small class="text-muted">{{item.time}}</small>
