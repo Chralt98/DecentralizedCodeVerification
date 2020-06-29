@@ -38,23 +38,23 @@ db = db_client["mydatabase"]
 db.smart_contracts.delete_many({})
 db.smart_contracts.insert_many(
     [{'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'Solidity', 'code_lines': 123,
-      'state': 'ACTIVE', 'eval_number': 0.74, 'amount': 132},
+      'state': 'ACTIVE', 'eval_number': 0.74, 'amount': 132, 'smart_contract_description': ''},
      {'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'Serpent', 'code_lines': 456,
-      'state': 'LOCKED', 'eval_number': 1.0, 'amount': 0},
+      'state': 'LOCKED', 'eval_number': 1.0, 'amount': 0, 'smart_contract_description': ''},
      {'address': '0xBB9bc244D798123fDe783fCc1C72d3Vb8C189413', 'language': 'LLL', 'code_lines': 724,
-      'state': 'VERIFIED', 'eval_number': 1.0, 'amount': 0},
+      'state': 'VERIFIED', 'eval_number': 1.0, 'amount': 0, 'smart_contract_description': ''},
      {'address': '0xBB9bc244D798123fDe783fCc1C72d3Fb8C189413', 'language': 'Mutan', 'code_lines': 70,
-      'state': 'VERIFIED', 'eval_number': 1.0, 'amount': 0},
+      'state': 'VERIFIED', 'eval_number': 1.0, 'amount': 0, 'smart_contract_description': ''},
      {'address': '0xBB9bc244D798123fDe783fCc1C72d3Cb8C189413', 'language': 'Solidity', 'code_lines': 7523,
-      'state': 'LOCKED', 'eval_number': 1.0, 'amount': 0},
+      'state': 'LOCKED', 'eval_number': 1.0, 'amount': 0, 'smart_contract_description': ''},
      {'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'Serpent', 'code_lines': 689,
-      'state': 'ACTIVE', 'eval_number': 0.33, 'amount': 56},
+      'state': 'ACTIVE', 'eval_number': 0.33, 'amount': 56, 'smart_contract_description': ''},
      {'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'LLL', 'code_lines': 189,
       'state': 'VERIFIED', 'eval_number': 1.0,
-      'amount': 0}])
+      'amount': 0, 'smart_contract_description': ''}])
 db.smart_contracts.insert_one(
     {'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'Solidity', 'code_lines': 123,
-     'state': 'ACTIVE', 'eval_number': 0.65, 'amount': 62})
+     'state': 'ACTIVE', 'eval_number': 0.65, 'amount': 62, 'smart_contract_description': ''})
 
 # smart contract codes
 # TODO
@@ -71,14 +71,23 @@ def index(path):
 @app.route('/upload', methods=['POST', 'GET'])
 def upload():
     if request.method == 'POST':
-        # TODO: let the user post the code, because smart contract address can not be viewed (only verified by etherscan could be viewed)
-        # TODO https://docs.openzeppelin.com/contracts/3.x/api/payment use PaymentSplitter for the testers
-        # TODO: check the address to be a valid address
-        # TODO security smart contract testing is already on the market
-        # TODO: specialize on live coding for crypto per second
-        print(request.form['smartContractAddress'])
-        return redirect(url_for('view', address=request.form['smartContractAddress']))
-    return render_template('upload.html')
+        _id = request.form['_id']
+        ether_per_hour = request.form['etherPerHour']
+        db.smart_contracts.update_one(
+            {'_id': ObjectId(_id)},
+            {
+                '$set': {
+                    'smart_contract_description': str(request.form['smartContractDescription']),
+                    'amount': ether_per_hour,
+                }
+            }, upsert=False
+        )
+        return redirect(url_for('view', room=_id))
+    elif request.method == 'GET':
+        _id = db.smart_contracts.insert_one(
+            {'address': '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413', 'language': 'Solidity', 'code_lines': 123,
+             'state': 'ACTIVE', 'eval_number': 0.65, 'amount': 69, 'smart_contract_description': ''}).inserted_id
+        return render_template('upload.html', _id=_id)
 
 
 @app.route('/about', methods=['GET'])
@@ -174,9 +183,10 @@ def handle_line_break(from_line, from_char, room):
 @app.route('/view/<string:room>', methods=['GET'])
 def view(room):
     if ObjectId.is_valid(room):
-        smart_contracts = list(dumps(db.smart_contracts.find({'_id': ObjectId(room)})))
-        if len(smart_contracts) > 0:
-            return render_template('view.html', room=room)
+        smart_contract = dumps(db.smart_contracts.find_one({'_id': ObjectId(room)}))
+        if smart_contract != 'null':
+            return render_template('view.html', room=room,
+                                   smart_contract_description=eval(smart_contract)['smart_contract_description'])
     return render_template('page_not_found.html')
 
 

@@ -19,9 +19,12 @@
     <link rel="shortcut icon" sizes="16x16 24x24 32x32 48x48 64x64" href="../static/images/favicon.ico">
 
     <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
-    <script>tinymce.init({
-        selector: 'textarea'
-    });</script>
+    <script>
+        tinymce.init({
+            selector: 'textarea',
+            height: '480',
+        });
+    </script>
 </head>
 <body>
 <nav class="navbar navbar-expand-sm fixed-top navbar-dark bg-dark">
@@ -71,21 +74,20 @@
     </div>
     <hr class="hr-accent">
 
-    <textarea></textarea>
+    <form action="" method=post enctype="multipart/form-data">
+        <div class="form-group text-center">
+            <input type="hidden" name="_id" value="{{ _id }}">
+            <label for="inputEtherPerHour">Input Ether per hour</label>
+            <input type="text" class="form-control" name="etherPerHour" id="inputEtherPerHour">
+            <small id="addressHelp" class="form-text text-muted">Ether per hour you pay each writer of your smart
+                contract.</small>
+            <textarea name="smartContractDescription"></textarea>
+        </div>
 
-    <div class="container min-vh-100 justify-content-center">
-        <form action="" method=post enctype="multipart/form-data">
-            <div class="form-group text-center">
-                <label for="inputSmartContractAddress">Input Ethereum Address</label>
-                <input type="text" class="form-control" name="smartContractAddress" id="inputSmartContractAddress">
-                <small id="addressHelp" class="form-text text-muted">Paste in the Ethereum address to the code
-                    source.</small>
-            </div>
-            <div class="p-3 text-center">
-                <button type="submit" class="btn btn-primary my-2">Submit</button>
-            </div>
-        </form>
-    </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary my-2">Submit</button>
+        </div>
+    </form>
 </main>
 
 <footer>
