@@ -1,8 +1,11 @@
-pragma solidity >=0.4.16 <0.7.0;
+pragma solidity >=0.4.22 <0.7.0;
 
-contract SimpleStorage {
-  uint storedData;
-  function set(uint x) public {
-    storedData = x;
-  }
+contract BallotTest {
+    bytes32[] proposalNames;
+
+    Ballot ballotToTest;
+    function beforeAll () public {
+        proposalNames.push(bytes32("candidate1"));
+        ballotToTest = new Ballot(proposalNames);
+    }
 }
